@@ -1,0 +1,23 @@
+import module org.oxt.avaudiorecorder.paulmcclernan
+  use com.livecode.objc
+  use com.livecode.foreign
+  use com.livecode.engine
+  use com.livecode.arithmetic
+  use com.livecode.binary
+  use com.livecode.list
+  use com.livecode.logic
+  use com.livecode.string
+  use com.livecode.type
+  use com.livecode.system
+  handler AVAudioRecorderStopCallback(in pBlock as Pointer) returns optional any
+  handler AVAudioRecorderInitCallback() returns optional any
+  handler AVAudioRecorderRemoveCallback() returns optional any
+  handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothing
+  handler AVAudioRecorderStop() returns nothing
+  handler AVAudioRecorderPlay() returns optional any
+  handler AVAudioRecorderIsPlaying() returns Boolean
+  handler AVAudioRecorderSetRate(in playbackRate as Number) returns nothing
+  handler AVAudioRecorderDuration() returns String
+  handler AVAudioRecorderGetCurrentPosition() returns String
+  handler AVAudioRecorderSetCurrentPosition(in playbackRate as Number) returns nothing
+end module
