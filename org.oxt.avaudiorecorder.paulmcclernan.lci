@@ -9,10 +9,15 @@ import module org.oxt.avaudiorecorder.paulmcclernan
   use com.livecode.string
   use com.livecode.type
   use com.livecode.system
+  use com.livecode.array
+  use com.livecode.byte
+  use com.livecode.char
+  use com.livecode.math
   handler AVAudioRecorderStopCallback(in pBlock as Pointer) returns optional any
   handler AVAudioRecorderInitCallback() returns optional any
   handler AVAudioRecorderRemoveCallback() returns optional any
   handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothing
+  handler RequestPermissionsCompletionHandler(in pBlock as Pointer, in pGranted as CBool) returns optional any
   handler AVAudioRecorderStop() returns nothing
   handler AVAudioRecorderPlay() returns optional any
   handler AVAudioRecorderIsPlaying() returns Boolean
@@ -20,4 +25,7 @@ import module org.oxt.avaudiorecorder.paulmcclernan
   handler AVAudioRecorderDuration() returns String
   handler AVAudioRecorderGetCurrentPosition() returns String
   handler AVAudioRecorderSetCurrentPosition(in playbackRate as Number) returns nothing
+  handler getIntegerFromFourCharCodeLittleEndian(in pStr as String) returns optional UInt32
+  handler getIntegerFromFourCharCodeBigEndian(in pStr as String) returns optional UInt32
+  handler getFourCharCodeFromUint32(in pNum as optional any) returns optional String
 end module
