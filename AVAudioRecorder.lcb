@@ -1,10 +1,10 @@
 /**
-This Library is a wrapper for macOS & iOS AVIMIDIPlayer, useful for playing MIDI musical performance data.
+This Library is a wrapper for AVAudioRecorder API for macOS & iOS.
 
 Description:
-This Library is a wrapper for macOS & iOS AVIMIDIPlayer.
+This Library is a wrapper for AVAudioRecorder API for macOS & iOS.
 
->*Note:* This library is MIT licensed (permissive).
+>*Note:* This library is GPL3 licensed.
 > Please share and share a like.
 */
 
@@ -193,7 +193,7 @@ public handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothi
 		-- put false into tIsDir
 		unsafe
 			put objC_NSErrorAlloc() into tNSError
-
+			put nothing into tNSError
 			--- get shared AVAudio Session, then get category to check if recordable mode
 			put objC_AVAudioSession() into tAVAudioSession
 			put objC_AVAudioSessionGetCategory(tAVAudioSession) into tNSObject
@@ -233,12 +233,12 @@ public handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothi
 			--	kAudioFormatLinearPCM = 'lpcm'
 			-- kAudioFormatAppleLossless = 'alac'
 
-			put NumberToNSNumber(getIntegerFromFourCharCodeBigEndian("lpcm")) into tRecSettingsArray[" A V F o r m a t I D "]
+			put NumberToNSNumber(getIntegerFromFourCharCodeBigEndian("lpcm")) into tRecSettingsArray[" A V F o r m a t I D Key"]
 			-- put "aac " into tRecSettingsArray[" A V F o r m a t I D K e y "]
-			put NumberToNSNumber(44100.0) into tRecSettingsArray[" A V S a m p l e R a t e "]
-			put NumberToNSNumber(2) into tRecSettingsArray[" A V N u m b e r O f C h a n n e l s "]
-			put NumberToNSNumber(16) into tRecSettingsArray[" A V L i n e a r P C M B i t D e p t h  "]
-			put 0 into tRecSettingsArray[" A V L i n e a r P C M I s B i g E n d i a n  "]
+			put NumberToNSNumber(44100.0) into tRecSettingsArray[" A V S a m p l e R a t e Key "]
+			put NumberToNSNumber(2) into tRecSettingsArray[" A V N u m b e r O f C h a n n e l s  Key"]
+			put NumberToNSNumber(16) into tRecSettingsArray[" A V L i n e a r P C M B i t D e p t h   Key"]
+			put 0 into tRecSettingsArray[" A V L i n e a r P C M I s B i g E n d i a n Key  "]
 			-- log tRecSettingsArray
 			put ArrayToNSDictionary(tRecSettingsArray) into tRecSettingsNSDict
 			-- log tRecSettingsNSDict
@@ -269,7 +269,7 @@ public handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothi
 end handler
 
 public handler RequestPermissionsCompletionHandler(in pBlock as ObjcBlockPointer, in pGranted as CBool)
-	log "AudioLibraryRequestPermissionsCallback"  -- to sTarget with [pGranted]
+	log ["AudioLibraryRequestPermissionsCallback", pGranted]  -- to sTarget with [pGranted]
 end handler
 
 

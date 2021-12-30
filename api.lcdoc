@@ -2,12 +2,12 @@ Library: org.oxt.avaudiorecorder.paulmcclernan
 
 Type: library
 
-Summary: This Library is a wrapper for macOS & iOS AVIMIDIPlayer, useful for playing MIDI musical performance data.
+Summary: This Library is a wrapper for AVAudioRecorder API for macOS & iOS.
 
 Description:
-This Library is a wrapper for macOS & iOS AVIMIDIPlayer.
+This Library is a wrapper for AVAudioRecorder API for macOS & iOS.
 
->*Note:* This library is MIT licensed (permissive).
+>*Note:* This library is GPL3 licensed.
 > Please share and share a like.
 
 version: 0.1
