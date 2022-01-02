@@ -8,7 +8,7 @@ This Library is a wrapper for AVAudioRecorder API for macOS & iOS.
 > Please share and share a like.
 */
 
-library org.oxt.avaudiorecorder.paulmcclernan
+library org.openxtalk.avaudiorecorder.paulmcclernan
 
 use com.livecode.engine
 use com.livecode.foreign
