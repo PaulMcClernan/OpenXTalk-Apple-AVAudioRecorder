@@ -1,5 +1,5 @@
 <package version="0.0">
-  <name>org.oxt.avaudiorecorder.paulmcclernan</name>
+  <name>org.openxtalk.avaudiorecorder.paulmcclernan</name>
   <title>AVAudioRecorder library</title>
   <author>Paul McClernan</author>
   <version>0.1</version>
@@ -34,4 +34,8 @@
   <handler name="getIntegerFromFourCharCodeLittleEndian" parameters="in string" return="optional Uint32"/>
   <handler name="getIntegerFromFourCharCodeBigEndian" parameters="in string" return="optional Uint32"/>
   <handler name="getFourCharCodeFromUint32" parameters="in optional any" return="optional string"/>
+  <handler name="objC_NSObjectsGetClassDescriptionForClass" parameters="in ObjcId" return="optional ObjcRetainedId"/>
+  <handler name="LogNSObjectClassName" parameters="in optional ObjcId" return="any"/>
+  <handler name="GetNSObjectClassName" parameters="in optional ObjcId" return="optional string"/>
+  <handler name="LogNSObjectReflection" parameters="in optional ObjcId" return="any"/>
 </package>

@@ -1,0 +1,36 @@
+import module org.openxtalk.avaudiorecorder.paulmcclernan
+  use com.livecode.objc
+  use com.livecode.foreign
+  use com.livecode.engine
+  use com.livecode.arithmetic
+  use com.livecode.binary
+  use com.livecode.list
+  use com.livecode.logic
+  use com.livecode.string
+  use com.livecode.type
+  use com.livecode.system
+  use com.livecode.array
+  use com.livecode.byte
+  use com.livecode.char
+  use com.livecode.math
+  handler AVAudioRecorderStopCallback(in pBlock as Pointer) returns optional any
+  handler AVAudioRecorderInitCallback() returns optional any
+  handler AVAudioRecorderRemoveCallback() returns optional any
+  handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothing
+  handler RequestPermissionsCompletionHandler(in pBlock as Pointer, in pGranted as CBool) returns optional any
+  handler AVAudioRecorderStop() returns nothing
+  handler AVAudioRecorderPlay() returns optional any
+  handler AVAudioRecorderIsPlaying() returns Boolean
+  handler AVAudioRecorderSetRate(in playbackRate as Number) returns nothing
+  handler AVAudioRecorderDuration() returns String
+  handler AVAudioRecorderGetCurrentPosition() returns String
+  handler AVAudioRecorderSetCurrentPosition(in playbackRate as Number) returns nothing
+  handler getIntegerFromFourCharCodeLittleEndian(in pStr as String) returns optional UInt32
+  handler getIntegerFromFourCharCodeBigEndian(in pStr as String) returns optional UInt32
+  handler getFourCharCodeFromUint32(in pNum as optional any) returns optional String
+  foreign handler objC_NSObjectsGetClassDescriptionForClass(in pClasss as ObjcId) returns optional ObjcRetainedId
+  foreign type ClassPropertiesList
+  handler LogNSObjectClassName(in pNSObj as optional ObjcId) returns optional any
+  handler GetNSObjectClassName(in tNSObj as optional ObjcId) returns optional String
+  handler LogNSObjectReflection(in pNSObj as optional ObjcId) returns optional any
+end module
