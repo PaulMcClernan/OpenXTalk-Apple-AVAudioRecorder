@@ -2,3 +2,4 @@
 .DS_Store
 ._api.lcdoc
 ._AVAudioRecorder.lcb
+*.DS_Store
