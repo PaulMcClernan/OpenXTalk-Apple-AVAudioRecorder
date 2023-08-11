@@ -22,15 +22,14 @@
   <handler name="AVAudioRecorderStopCallback" parameters="in Pointer" return="any"/>
   <handler name="AVAudioRecorderInitCallback" parameters="" return="any"/>
   <handler name="AVAudioRecorderRemoveCallback" parameters="" return="any"/>
-  <handler name="AVAudioRecorderLoad" parameters="in string" return="nothing"/>
+  <handler name="AVAudioRecorderPrepare" parameters="in string" return="optional boolean"/>
   <handler name="RequestPermissionsCompletionHandler" parameters="in Pointer,in CBool" return="any"/>
   <handler name="AVAudioRecorderStop" parameters="" return="nothing"/>
-  <handler name="AVAudioRecorderPlay" parameters="" return="any"/>
-  <handler name="AVAudioRecorderIsPlaying" parameters="" return="boolean"/>
-  <handler name="AVAudioRecorderSetRate" parameters="in real" return="nothing"/>
+  <handler name="AVAudioRecorderPause" parameters="" return="nothing"/>
+  <handler name="AVAudioRecorderRecord" parameters="" return="any"/>
+  <handler name="AVAudioRecorderDeleteRecording" parameters="" return="any"/>
+  <handler name="AVAudioRecorderIsRecording" parameters="" return="boolean"/>
   <handler name="AVAudioRecorderDuration" parameters="" return="string"/>
-  <handler name="AVAudioRecorderGetCurrentPosition" parameters="" return="string"/>
-  <handler name="AVAudioRecorderSetCurrentPosition" parameters="in real" return="nothing"/>
   <handler name="getIntegerFromFourCharCodeLittleEndian" parameters="in string" return="optional Uint32"/>
   <handler name="getIntegerFromFourCharCodeBigEndian" parameters="in string" return="optional Uint32"/>
   <handler name="getFourCharCodeFromUint32" parameters="in optional any" return="optional string"/>

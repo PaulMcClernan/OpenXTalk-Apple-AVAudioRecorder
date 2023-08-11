@@ -98,6 +98,8 @@ private foreign handler objC_AVAudioSessionSetCategory(in pAVAudioSession as Obj
 private foreign handler objC_AVAudioSessionRequestRecordPermission(in pAVAudioSession as ObjcId, in pGrantedHandler as ObjcBlockPointer) returns nothing binds to "objc:AVAudioSession.-requestRecordPermission:"
 -- - (void)requestRecordPermission:(void (^)(BOOL granted))response;
 
+
+---  AVAudioRecorder API: https://developer.apple.com/documentation/avfaudio/avaudiorecorder?language=objc
 private foreign handler objC_AVAudioRecorderAlloc() returns ObjcRetainedId binds to "objc:AVAudioRecorder.+alloc"
 private foreign handler objC_AVAudioRecorderInitWithURLAndSettings(in pAVAudioRecorder as ObjcRetainedId, in pFileNSURL as ObjcId, in pSettingsNSDict as ObjcId, out pNSError as ObjcId) returns optional ObjcId binds to "objc:AVAudioRecorder.-initWithURL:settings:error:" -- initWithURL:format:error:
 private foreign handler objC_AVAudioRecorderInitWithURLAndFormat(in pAVAudioRecorder as ObjcRetainedId, in pFileNSURL as ObjcId, in pAVAudioFormat as ObjcId, out pNSError as ObjcId) returns optional ObjcId binds to "objc:AVAudioRecorder.-initWithURL:format:error:"
@@ -108,10 +110,16 @@ private foreign handler objC_AVAudioFormatInitStandardFormatWithSampleRateAndCha
 
 private foreign handler objC_AVAudioRecorderPrepareToRecord(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.-prepareToRecord"
 private foreign handler objC_AVAudioRecorderRecord(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.-record"
-private foreign handler objC_AVAudioRecorderStop(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.-stop"
+private foreign handler objC_AVAudioRecorderIsRecording(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.isRecording"
+private foreign handler objC_AVAudioRecorderStop(in pAVAudioRecorder as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-stop"
+private foreign handler objC_AVAudioRecorderPause(in pAVAudioRecorder as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-pause"
+private foreign handler objC_AVAudioRecorderDeleteRecording(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.-deleteRecording"
+
+
+
 private foreign handler objC_AVAudioRecorderDuration(in pAVAudioRecorder as ObjcId) returns NaturalFloat binds to "objc:AVAudioRecorder.duration"
 private foreign handler objC_AVAudioRecorderCurrentPosition(in pAVAudioRecorder as ObjcId) returns NaturalFloat binds to "objc:AVAudioRecorder.currentPosition"
-private foreign handler objC_AVAudioRecorderSet(in pAVAudioRecorder as ObjcId, in pValue as ObjcId, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
+private foreign handler objC_AVAudioRecorderSetValueForKey(in pAVAudioRecorder as ObjcId, in pValue as ObjcId, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
 
 --------------------- Public handler:
 private variable mAVAudioRecorderInstance as optional ObjcId
@@ -169,25 +177,26 @@ public handler AVAudioRecorderRemoveCallback()
 		put nothing into sAVAudioRecorderStopCallbackHandlerPtr
 	 end if
 end handler
+
 /**
-Loads a MIDI file from and a Soundbank file from file paths and prepares for playback.
+Prepare a file for AVAudioRecorder to record to
 
 Example:
-AVAudioRecorderLoad "/Users/Me/MIDIMusic.mid","/System/Library/Components/CoreAudio.component/Contents/Resources/gs_instruments.dls"
+AVAudioRecorderLoad "~/TestSoundRecording"
 
 Parameters:
-MIDIfilePath (string): the file path to a MIDI file
-SoundFontPath (string): the file path to a SoundBank SF2 or DLS file
+pRecordToFilePath (string): the file path to a record audio to.
+
+Returns:
+True is preperation was successful and recording to the file may begin.
 
 Description:
-Loads a MIDI file from and a Soundbank file in either SoundFont2 or
-Downloadable Sound DLS format from absolute file paths passed in and
-"prerolls" the data, preparing it for playback.
+Initializes an AVAudioRecorder instance and prepares a file to record to.
+
 */
 private variable sRequestPermissionsCompletionHandler as optional ObjcBlockPointer
 -- private variable sTarget as ScriptObject
-
-public handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothing
+public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns optional Boolean
 	if (the operating system is "mac") or (the operating system is "ios") then
 		--- need NSURL objects to pass to AVAudioRecorder
 		-- variable tFileNSURL as ObjcObject
@@ -235,10 +244,10 @@ public handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothi
 			-- put objC_NSURLfileURLWithPath(StringToNSString(pRecordToFilePath)) into tFileNSURL
 			-- put objC_NSURLfileURLWithPath(StringToNSString(pFilePath),tIsDir) into tFileNSURL
 		 	put objC_NSURLfileURLWithPath(StringToNSString(pRecordToFilePath)) into tRecordToFileNSURL
+			LogNSObjectReflection(tRecordToFileNSURL)
 			-- put objC_NSURLfileURLWithPath(StringToNSString(pSoundFontPath),tIsDir) into tSoundFontNSURL
      		-- NEED to Add Checking for validity of URLs or the  Engine will crash when it passes an invalid URL to AVAudioRecorder!
 			-- For some reason, AVAudioRecorder requires the proper file extension (.mp3, .ima4, etc.) when using a file URL for recording
-    		put objC_AVAudioRecorderAlloc() into mAVAudioRecorderInstance
 			----------------------------------------------------set audio recording setting
 			-- AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryRecord error:&error
 			-- kAudioFormatMPEG4AAC is "aac '
@@ -267,9 +276,10 @@ public handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothi
 			-- put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels(mAVAudioFormat, NumberToNSNumber(44100), NumberToNSNumber(1) ) into mAVAudioFormat
 			-- The returned AVAudioFormat instance uses the AVAudioPCMFormatFloat32 format. AVAudioCommonFormat Enumeration AVAudioPCMFormatFloat32 = 1
 			-- log ["mAVAudioFormat:", mAVAudioFormat]
+			put objC_AVAudioRecorderAlloc() into mAVAudioRecorderInstance
 			-- put objC_AVAudioRecorderInitWithURLAndFormat(mAVAudioRecorderInstance, tRecordToFileNSURL, NumberToNSNumber(getIntegerFromFourCharCodeBigEndian("lpcm")), tNSError) into mAVAudioRecorderInstance
 			put objC_AVAudioRecorderInitWithURLAndFormat(mAVAudioRecorderInstance, tRecordToFileNSURL, mAVAudioFormat, tNSError) into mAVAudioRecorderInstance
-
+			LogNSObjectReflection(mAVAudioRecorderInstance)
 			-- put objC_AVAudioRecorder(mAVAudioRecorderInstance, tFileNSURL ,tSoundFontNSURL, tNSError) into mAVAudioRecorderInstance
 			if tNSError is not nothing then
 				  put c_CFErrorCopyDescription(tNSError) into tNSErrorDescriptionRef
@@ -278,9 +288,10 @@ public handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothi
 			  end if
 			if mAVAudioRecorderInstance is not nothing then
 				put objC_AVAudioRecorderPrepareToRecord(mAVAudioRecorderInstance) into tSuccess
-				log ["Prepare Success:", tSuccess]
-				put objC_AVAudioRecorderRecord(mAVAudioRecorderInstance) into tSuccess
-				log ["Record Success:", tSuccess]
+				--log ["Prepare Success:", tSuccess]
+				return tSuccess
+				-- put objC_AVAudioRecorderRecord(mAVAudioRecorderInstance) into tSuccess
+				-- log ["Record Success:", tSuccess]
 			end if
 		end unsafe
 	end if
@@ -300,64 +311,95 @@ AVAudioRecorderStop
 Parameters:
 
 Description:
+Stops AVAudioRecorder from recording.
 */
 public handler AVAudioRecorderStop() returns nothing
 	variable tSuccess as Boolean
 		unsafe
-    		put objC_AVAudioRecorderStop(mAVAudioRecorderInstance) into tSuccess
+			if mAVAudioRecorderInstance is not nothing then
+	    		objC_AVAudioRecorderStop(mAVAudioRecorderInstance)
+				log ["Stop"]
+			end if
+		end unsafe
+end handler
+
+/**
+Pause Recording.
+
+Example:
+AVAudioRecorderPause
+
+Parameters:
+
+Description:
+Pauses AVAudioRecorder recording.
+*/
+public handler AVAudioRecorderPause() returns nothing
+	variable tSuccess as Boolean
+		unsafe
+			if mAVAudioRecorderInstance is not nothing then
+    			objC_AVAudioRecorderPause(mAVAudioRecorderInstance)
+				log ["Pause"]
+			end if
 		end unsafe
 end handler
 
 
 /**
-Plays the data that was loaded with either AVAudioRecorderLoad or AVAudioRecorderLoadURLs
+Starts recording to a file prepared by passing a filepath to AVAudioRecorderPrepare
 
 Example:
-AVAudioRecorderPlay
+AVAudioRecorderRecord
 
 Description:
-Plays the data that was loaded with either AVAudioRecorderLoad or AVAudioRecorderLoadURLs
+Starts recording to a file prepared by passing a filepath to AVAudioRecorderPrepare
 */
-public handler AVAudioRecorderPlay()
-	-- variable tAVAudioRecorderCompletionHandler as optional pointer
+public handler AVAudioRecorderRecord()
+	variable tSuccess as Boolean
 	unsafe
-	  -- objC_AVAudioRecorderPlay(mAVAudioRecorderInstance, sAVAudioRecorderStopCallbackHandlerPtr)
+		if mAVAudioRecorderInstance is not nothing then
+			put objC_AVAudioRecorderRecord(mAVAudioRecorderInstance) into tSuccess
+			log ["Record Success:", tSuccess]
+		end if
 	end unsafe
 end handler
+
+--- - recordAtTime: Records audio starting at a specific time.
+--- - recordForDuration: Records audio for the indicated duration of time.
+--- - recordAtTime:forDuration: Records audio starting at a specific time for the indicated duration.
+
+
+public handler AVAudioRecorderDeleteRecording()
+	variable tSuccess as Boolean
+	unsafe
+		if mAVAudioRecorderInstance is not nothing then
+			put objC_AVAudioRecorderDeleteRecording(mAVAudioRecorderInstance) into tSuccess
+			log ["Recording Deleted Successfully:", tSuccess]
+			put nothing into mAVAudioRecorderInstance
+		end if
+	end unsafe
+end handler
+
 
 /**
-Checks to see if MIDI Data is currently being played back
+Check if AVAudioRecorder is currently recording sound.
 
 Example:
- if AVAudioRecorderIsPlaying() then AVAudioRecorderStop
+ if AVAudioRecorderIsRecording() then AVAudioRecorderStop
 
 Description:
-A boolean that indicates if MIDI Data is currently being played back.
+A function that returns a boolean which indicates if AVAudioRecorder is currently recording sound.
 */
-public handler AVAudioRecorderIsPlaying() returns Boolean
+public handler AVAudioRecorderIsRecording() returns Boolean
 	unsafe
-	-- return objC_AVAudioRecorderPlaying(mAVAudioRecorderInstance)
+		if mAVAudioRecorderInstance is not nothing then
+			return objC_AVAudioRecorderIsRecording(mAVAudioRecorderInstance)
+		else
+			return false
+		end if
 	end unsafe
 end handler
 
-/**
-Sets the decimal rate of playback; 1.0 being original, 0.5 half, and 2.0 double speed.
-
-Example:
-AVAudioRecorderSetRate 0.75 -- 3/4 the speed of original MIDI file tempo.
-
-Parameters:
-playbackRate (Number): a decimal number to set the playback rate to.
-
-Description:
-Sets the decimal rate of playback; 1.0 being the original tempo of the MIDI File.
-Set playbackRate to 0.5 for half the speed or the original tempo or 2.0 to double the speed.
-*/
-public handler AVAudioRecorderSetRate(in playbackRate as Real) returns nothing
-	unsafe
-    -- objC_AVAudioRecorderSet(mAVAudioRecorderInstance,NumberToNSNumber(playbackRate),StringToNSString("rate"))
-	end unsafe
-end handler
 
 /**
 Returns the length of a loaded sequence in seconds and microseconds.
@@ -391,63 +433,8 @@ public handler AVAudioRecorderDuration() returns String
 	end unsafe
 end handler
 
-/**
-Returns the current position of playing sequence in seconds and microseconds.
 
-Example:
-function SecsToHrsMinSecs pSecs -- in seconds.millisecs
-   lock screen
-   split pSecs by "."
-   put trunc(pSecs[1]) into deltaTime
-   put trunc(deltaTime div 3600) into h -- hours
-   put trunc((deltaTime - (h * 3600)) / 60) into m -- minutes
-   put deltaTime - (h * 3600) - (m * 60) into s -- seconds
-   put format( "%01i:%02i:%02i", h, m, s ) &":"& pSecs[2] into displayTime
-   return displayTime
-end SecsToHrsMinSecs
-put SecsToHrsMinSecs(AVAudioRecorderSetCurrentPosition())
-
-Example:
-set the thumbPosition of scrollBar "PlayBackProgress" to AVAudioRecorderSetCurrentPosition()
-
-Description:
-Returns the current position of playback in seconds and microseconds.
-Use for displaying the current playback progress or current time within a sequence.
-Note that current position will continue to increment past the sequence duration
-until a stop command is issued.
-*/
-public handler AVAudioRecorderGetCurrentPosition() returns String
-	variable tCurrentPosition as NaturalFloat
-	-- variable tNewPosition as NaturalFloat
-	unsafe
-	-- put objC_AVAudioRecorderCurrentPosition(mAVAudioRecorderInstance) into tCurrentPosition
-	-- put objC_AVAudioRecorderCurrentPosition(mAVAudioRecorderInstance,tNewPosition) into tCurrentPosition
-    return tCurrentPosition formatted as string
-	end unsafe
-end handler
-
-/**
-Sets the current position in seconds.microseconds for a sequence to play from.
-
-Example:
-AVAudioRecorderSetCurrentPosition(the thumbPosition of scrollBar "PlayBackProgress")
-
-Example:
-AVAudioRecorderSetCurrentPosition 10.1 -- sets the position to 10 and 1/10th of a second.
-
-Description:
-Sets the current position in seconds.microseconds for a sequence to play from.
-A sequence must first be loaded into memory using AVAudioRecorderLoad or AVMIDIPlayetLoadURLs
-before the current position can be set.
-Use for "scrubbing" to different points within a sequence or for pause-resume functionality.
-*/
-public handler AVAudioRecorderSetCurrentPosition(in pNewPosition as Real) returns nothing
-	-- variable tNewPosition as NaturalFloat
-	unsafe
-	-- objC_AVAudioRecorderSet(mAVAudioRecorderInstance,NumberToNSNumber(pNewPosition),StringToNSString("currentPosition"))
-	end unsafe
-end handler
-
+---------------------------------------------------- UTILITY HANDLERS -------------------------------------------------------------------
 
 public handler getIntegerFromFourCharCodeLittleEndian(in pStr as String) returns optional Uint32
    variable tUint32 as Uint32

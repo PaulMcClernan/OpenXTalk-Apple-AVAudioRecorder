@@ -16,15 +16,14 @@ import module org.openxtalk.avaudiorecorder.paulmcclernan
   handler AVAudioRecorderStopCallback(in pBlock as Pointer) returns optional any
   handler AVAudioRecorderInitCallback() returns optional any
   handler AVAudioRecorderRemoveCallback() returns optional any
-  handler AVAudioRecorderLoad(in pRecordToFilePath as String) returns nothing
+  handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns optional Boolean
   handler RequestPermissionsCompletionHandler(in pBlock as Pointer, in pGranted as CBool) returns optional any
   handler AVAudioRecorderStop() returns nothing
-  handler AVAudioRecorderPlay() returns optional any
-  handler AVAudioRecorderIsPlaying() returns Boolean
-  handler AVAudioRecorderSetRate(in playbackRate as Number) returns nothing
+  handler AVAudioRecorderPause() returns nothing
+  handler AVAudioRecorderRecord() returns optional any
+  handler AVAudioRecorderDeleteRecording() returns optional any
+  handler AVAudioRecorderIsRecording() returns Boolean
   handler AVAudioRecorderDuration() returns String
-  handler AVAudioRecorderGetCurrentPosition() returns String
-  handler AVAudioRecorderSetCurrentPosition(in playbackRate as Number) returns nothing
   handler getIntegerFromFourCharCodeLittleEndian(in pStr as String) returns optional UInt32
   handler getIntegerFromFourCharCodeBigEndian(in pStr as String) returns optional UInt32
   handler getFourCharCodeFromUint32(in pNum as optional any) returns optional String
