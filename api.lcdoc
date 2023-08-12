@@ -15,27 +15,6 @@ version: 0.1
 author: Paul McClernan
 
 
-Name: AVAudioRecorderPrepare
-
-Type: handler
-
-Syntax: AVAudioRecorderPrepare(<pRecordToFilePath>)
-
-Summary: Prepare a file for AVAudioRecorder to record to
-
-Example: AVAudioRecorderLoad "~/TestSoundRecording"
-
-Parameters: 
-
-pRecordToFilePath: the file path to a record audio to.
-
-Returns: True is preperation was successful and recording to the file may begin.
-
-Description: Initializes an AVAudioRecorder instance and prepares a file to record to.
-
-
-
-
 Name: AVAudioRecorderRecord
 
 Type: handler
@@ -47,21 +26,6 @@ Summary: Starts recording to a file prepared by passing a filepath to AVAudioRec
 Example: AVAudioRecorderRecord
 
 Description: Starts recording to a file prepared by passing a filepath to AVAudioRecorderPrepare
-
-
-
-
-Name: AVAudioRecorderIsRecording
-
-Type: handler
-
-Syntax: AVAudioRecorderIsRecording()
-
-Summary: Check if AVAudioRecorder is currently recording sound.
-
-Example:  if AVAudioRecorderIsRecording() then AVAudioRecorderStop
-
-Description: A function that returns a boolean which indicates if AVAudioRecorder is currently recording sound.
 
 
 
@@ -83,6 +47,98 @@ Description: Pauses AVAudioRecorder recording.
 
 
 
+Name: AVAudioRecorderPrepare
+
+Type: handler
+
+Syntax: AVAudioRecorderPrepare(<pRecordToFilePath>)
+
+Summary: Prepare a file for AVAudioRecorder to record to
+
+Example: AVAudioRecorderLoad "~/TestSoundRecording"
+
+Parameters: 
+
+pRecordToFilePath: the file path to a record audio to.
+
+Returns: True is preperation was successful and recording to the file may begin.
+
+Description: Initializes an AVAudioRecorder instance and prepares a file to record to.
+
+
+
+
+Name: AVAudioRecorderIsRecording
+
+Type: handler
+
+Syntax: AVAudioRecorderIsRecording()
+
+Summary: Check if AVAudioRecorder is currently recording sound.
+
+Example:  if AVAudioRecorderIsRecording() then AVAudioRecorderStop
+
+Description: A function that returns a boolean which indicates if AVAudioRecorder is currently recording sound.
+
+
+
+
+Name: AVAudioRecorderCurrentTime
+
+Type: handler
+
+Syntax: AVAudioRecorderCurrentTime()
+
+Summary: Returns the temporal location within a recording that the record curso.
+
+Example:
+function SecsToHrsMinSecs pSecs
+   lock screen
+   split pSecs by "."
+   put trunc(pSecs[1]) into deltaTime
+   put trunc(deltaTime div 3600) into h -- hours
+   put trunc((deltaTime - (h * 3600)) / 60) into m -- minutes
+   put deltaTime - (h * 3600) - (m * 60) into s -- seconds
+   put format( "%01i:%02i:%02i", h, m, s ) &":"& pSecs[2] into displayTime
+   return displayTime
+end SecsToHrsMinSecs
+put "The recording is currently " & SecsToHrsMinSecs(AVAudioRecorderCurrentTime()) & " long"
+
+Example: put AVAudioRecorderCurrentTime() into fld "Recorded Time in Seconds"
+
+Description: The time in seconds since the beginning of the recording
+
+
+
+
+Name: AVAudioRecorderDeviceTime
+
+Type: handler
+
+Syntax: AVAudioRecorderDeviceTime()
+
+Summary: Returns the current time per the host machine or device.
+
+Example:
+function SecsToHrsMinSecs pSecs
+   lock screen
+   split pSecs by "."
+   put trunc(pSecs[1]) into deltaTime
+   put trunc(deltaTime div 3600) into h -- hours
+   put trunc((deltaTime - (h * 3600)) / 60) into m -- minutes
+   put deltaTime - (h * 3600) - (m * 60) into s -- seconds
+   put format( "%01i:%02i:%02i", h, m, s ) &":"& pSecs[2] into displayTime
+   return displayTime
+end SecsToHrsMinSecs
+put "The current time is" & SecsToHrsMinSecs(AVAudioRecorderDeviceTime())
+
+Example: put AVAudioRecorderDeviceTime() into fld "Recording start time"
+
+Description: Use the returned value to schedule audio recording start time and duration.
+
+
+
+
 Name: AVAudioRecorderStop
 
 Type: handler
@@ -97,35 +153,6 @@ Parameters:
 
 Description: Stops AVAudioRecorder from recording.
 
-
-
-
-Name: AVAudioRecorderDuration
-
-Type: handler
-
-Syntax: AVAudioRecorderDuration()
-
-Summary: Returns the length of a loaded sequence in seconds and microseconds.
-
-Example:
-function SecsToHrsMinSecs pSecs -- in seconds.millisecs
-   lock screen
-   split pSecs by "."
-   put trunc(pSecs[1]) into deltaTime
-   put trunc(deltaTime div 3600) into h -- hours
-   put trunc((deltaTime - (h * 3600)) / 60) into m -- minutes
-   put deltaTime - (h * 3600) - (m * 60) into s -- seconds
-   put format( "%01i:%02i:%02i", h, m, s ) &":"& pSecs[2] into displayTime
-   return displayTime
-end SecsToHrsMinSecs
-put "The MIDI Sequence is " & SecsToHrsMinSecs(AVAudioRecorderDuration()) & " long"
-
-Example: set the endValue of scrollbar "PlayBackProgress" to AVAudioRecorderDuration()
-
-Description:
-Returns the length of a sequence in seconds and microseconds. A sequence
-must first be loaded into memory using AVAudioRecorderLoad or AVMIDIPlayetLoadURLs.
 
 
 

@@ -29,7 +29,13 @@
   <handler name="AVAudioRecorderRecord" parameters="" return="any"/>
   <handler name="AVAudioRecorderDeleteRecording" parameters="" return="any"/>
   <handler name="AVAudioRecorderIsRecording" parameters="" return="boolean"/>
-  <handler name="AVAudioRecorderDuration" parameters="" return="string"/>
+  <handler name="AVAudioRecorderCurrentTime" parameters="" return="optional any"/>
+  <handler name="AVAudioRecorderDeviceTime" parameters="" return="optional any"/>
+  <handler name="AVAudioRecordeGetMeteringEnable" parameters="in boolean" return="optional any"/>
+  <handler name="AVAudioRecordeGetMeteringIsEnable" parameters="" return="boolean"/>
+  <handler name="AVAudioRecordeUpdateMeters" parameters="" return="nothing"/>
+  <handler name="AVAudioRecorderMeterAverageForChan" parameters="in optional CUInt" return="nothing"/>
+  <handler name="AVAudioRecorderMeterPeakForChan" parameters="in optional CUInt" return="nothing"/>
   <handler name="getIntegerFromFourCharCodeLittleEndian" parameters="in string" return="optional Uint32"/>
   <handler name="getIntegerFromFourCharCodeBigEndian" parameters="in string" return="optional Uint32"/>
   <handler name="getFourCharCodeFromUint32" parameters="in optional any" return="optional string"/>

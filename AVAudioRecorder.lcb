@@ -114,12 +114,28 @@ private foreign handler objC_AVAudioRecorderIsRecording(in pAVAudioRecorder as O
 private foreign handler objC_AVAudioRecorderStop(in pAVAudioRecorder as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-stop"
 private foreign handler objC_AVAudioRecorderPause(in pAVAudioRecorder as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-pause"
 private foreign handler objC_AVAudioRecorderDeleteRecording(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.-deleteRecording"
+private foreign handler objC_AVAudioRecorderCurrentTime(in pAVAudioRecorder as ObjcId) returns NaturalFloat binds to "objc:AVAudioRecorder.currentTime"
+private foreign handler objC_AVAudioRecorderDeviceCurrentTime(in pAVAudioRecorder as ObjcId) returns NaturalFloat binds to "objc:AVAudioRecorder.deviceCurrentTime"
 
-
-
-private foreign handler objC_AVAudioRecorderDuration(in pAVAudioRecorder as ObjcId) returns NaturalFloat binds to "objc:AVAudioRecorder.duration"
-private foreign handler objC_AVAudioRecorderCurrentPosition(in pAVAudioRecorder as ObjcId) returns NaturalFloat binds to "objc:AVAudioRecorder.currentPosition"
 private foreign handler objC_AVAudioRecorderSetValueForKey(in pAVAudioRecorder as ObjcId, in pValue as ObjcId, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
+
+private foreign handler objC_AVAudioRecordeGetMeteringIsEnabled(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.IsMeteringEnabled"
+private foreign handler objC_AVAudioRecordeGetMeteringEnable(in pAVAudioRecorder as ObjcId, in pEnable as CBool) returns nothing binds to "objc:AVAudioRecorder.-meteringEnabled"
+private foreign handler objC_AVAudioRecorderUpateMeters(in pAVAudioRecorder as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-updateMeters"
+-- indicates whether you’ve enabled the recorder to generate audio-level metering data
+-- By default, the recorder doesn’t generate audio-level metering data. Because metering uses computing resources, enable it only if you intend to use it.
+private foreign handler objC_AVAudioRecorderMeterAverageForChan(in pAVAudioRecorder as ObjcId, in pChannelNum as CUint) returns NaturalFloat binds to "objc:AVAudioRecorder.-averagePowerForChannel:"
+private foreign handler objC_AVAudioRecorderMeterPeakForChan(in pAVAudioRecorder as ObjcId, in pChannelNum as CUint) returns NaturalFloat binds to "objc:AVAudioRecorder.-peakPowerForChannel:"
+
+--------------- TO DO ------------------
+-- properties:
+-- hannelAssignments -- An array of channel descriptions associated with the audio recorder.
+-- url -- The URL to which the recorder writes its data.
+-- format -- The format of the recorded audio.
+-- settings -- The settings that describe the format of the recorded audio.
+-- Responding to recorder events:
+-- delegate -- The delegate object for the audio recorder.
+-- AVAudioRecorderDelegate -- A protocol that defines the methods to respond to audio recording events and encoding errors.
 
 --------------------- Public handler:
 private variable mAVAudioRecorderInstance as optional ObjcId
@@ -375,7 +391,7 @@ public handler AVAudioRecorderDeleteRecording()
 		if mAVAudioRecorderInstance is not nothing then
 			put objC_AVAudioRecorderDeleteRecording(mAVAudioRecorderInstance) into tSuccess
 			log ["Recording Deleted Successfully:", tSuccess]
-			put nothing into mAVAudioRecorderInstance
+		-- 	put nothing into mAVAudioRecorderInstance -- deleting the recorder crashes engine (sometimes)
 		end if
 	end unsafe
 end handler
@@ -402,10 +418,10 @@ end handler
 
 
 /**
-Returns the length of a loaded sequence in seconds and microseconds.
+Returns the temporal location within a recording that the record curso.
 
 Example:
-function SecsToHrsMinSecs pSecs -- in seconds.millisecs
+function SecsToHrsMinSecs pSecs
    lock screen
    split pSecs by "."
    put trunc(pSecs[1]) into deltaTime
@@ -415,21 +431,111 @@ function SecsToHrsMinSecs pSecs -- in seconds.millisecs
    put format( "%01i:%02i:%02i", h, m, s ) &":"& pSecs[2] into displayTime
    return displayTime
 end SecsToHrsMinSecs
-put "The MIDI Sequence is " & SecsToHrsMinSecs(AVAudioRecorderDuration()) & " long"
+put "The recording is currently " & SecsToHrsMinSecs(AVAudioRecorderCurrentTime()) & " long"
 
 Example:
-set the endValue of scrollbar "PlayBackProgress" to AVAudioRecorderDuration()
+put AVAudioRecorderCurrentTime() into fld "Recorded Time in Seconds"
 
 Description:
-Returns the length of a sequence in seconds and microseconds. A sequence
-must first be loaded into memory using AVAudioRecorderLoad or AVMIDIPlayetLoadURLs.
+The time in seconds since the beginning of the recording
 */
-public handler AVAudioRecorderDuration() returns String
-	variable tDuration as optional NaturalFloat
+public handler AVAudioRecorderCurrentTime() returns optional any
+	variable tCurrentTime as optional NaturalFloat
 	unsafe
-	-- put objC_AVAudioRecorderInfo(mAVAudioRecorderInstance,StringToNSString("duration")) into tDuration
-	-- put objC_AVAudioRecorderDuration(mAVAudioRecorderInstance) into tDuration
-   --  return tDuration formatted as string
+	if mAVAudioRecorderInstance is not nothing then
+		put objC_AVAudioRecorderCurrentTime(mAVAudioRecorderInstance) into tCurrentTime
+	   return tCurrentTime formatted as string
+	end if
+	end unsafe
+end handler
+
+
+/**
+Returns the current time per the host machine or device.
+
+Example:
+function SecsToHrsMinSecs pSecs
+   lock screen
+   split pSecs by "."
+   put trunc(pSecs[1]) into deltaTime
+   put trunc(deltaTime div 3600) into h -- hours
+   put trunc((deltaTime - (h * 3600)) / 60) into m -- minutes
+   put deltaTime - (h * 3600) - (m * 60) into s -- seconds
+   put format( "%01i:%02i:%02i", h, m, s ) &":"& pSecs[2] into displayTime
+   return displayTime
+end SecsToHrsMinSecs
+put "The current time is" & SecsToHrsMinSecs(AVAudioRecorderDeviceTime())
+
+Example:
+put AVAudioRecorderDeviceTime() into fld "Recording start time"
+
+Description:
+Use the returned value to schedule audio recording start time and duration.
+*/
+public handler AVAudioRecorderDeviceTime() returns optional any
+	variable tCurrentTime as optional NaturalFloat
+	unsafe
+	if mAVAudioRecorderInstance is not nothing then
+		put objC_AVAudioRecorderDeviceCurrentTime(mAVAudioRecorderInstance) into tCurrentTime
+	   return tCurrentTime formatted as string
+	end if
+	end unsafe
+end handler
+
+
+
+-- By default, the recorder doesn’t generate audio-level metering data. Because metering uses computing resources, enable it only if you intend to use it.
+public handler AVAudioRecordeGetMeteringEnable( in pEnable as Boolean ) returns optional any
+	variable tEnabled as Boolean
+	unsafe
+	if mAVAudioRecorderInstance is not nothing then
+		objC_AVAudioRecordeGetMeteringEnable(mAVAudioRecorderInstance, pEnable)
+	   put objC_AVAudioRecordeGetMeteringIsEnabled(mAVAudioRecorderInstance) into tEnabled
+		log tEnabled
+	end if
+	end unsafe
+end handler
+-- indicates whether you’ve enabled the recorder to generate audio-level metering data
+public handler AVAudioRecordeGetMeteringIsEnable( ) returns Boolean
+	unsafe
+	if mAVAudioRecorderInstance is not nothing then
+	   return objC_AVAudioRecordeGetMeteringIsEnabled(mAVAudioRecorderInstance)
+	else
+		return false
+	end if
+	end unsafe
+end handler
+public handler AVAudioRecordeUpdateMeters() returns nothing
+	unsafe
+	if mAVAudioRecorderInstance is not nothing then
+	    objC_AVAudioRecorderUpateMeters(mAVAudioRecorderInstance)
+	end if
+	end unsafe
+end handler
+
+public handler AVAudioRecorderMeterAverageForChan(in pChan as optional CUInt) returns nothing
+	variable tAverageLevel as optional NaturalFloat
+	if pChan is nothing then
+		put 1 into pChan
+	end if
+	unsafe
+		if mAVAudioRecorderInstance is not nothing then
+		   put objC_AVAudioRecorderMeterAverageForChan(mAVAudioRecorderInstance,pChan) into tAverageLevel
+			return tAverageLevel
+		end if
+	end unsafe
+end handler
+
+public handler AVAudioRecorderMeterPeakForChan(in pChan as optional CUInt) returns nothing
+	variable tPeakLevel as optional NaturalFloat
+	if pChan is nothing then
+		put 1 into pChan
+	end if
+	unsafe
+		if mAVAudioRecorderInstance is not nothing then
+		   put objC_AVAudioRecorderMeterPeakForChan(mAVAudioRecorderInstance,pChan) into tPeakLevel
+			return tPeakLevel
+		end if
 	end unsafe
 end handler
 
