@@ -118,14 +118,16 @@ private foreign handler objC_AVAudioRecorderCurrentTime(in pAVAudioRecorder as O
 private foreign handler objC_AVAudioRecorderDeviceCurrentTime(in pAVAudioRecorder as ObjcId) returns NaturalFloat binds to "objc:AVAudioRecorder.deviceCurrentTime"
 
 private foreign handler objC_AVAudioRecorderSetValueForKey(in pAVAudioRecorder as ObjcId, in pValue as ObjcId, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
+private foreign handler objC_AVAudioRecorderSetBoolValueForKey(in pAVAudioRecorder as ObjcId, in pValue as CBool, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
 
-private foreign handler objC_AVAudioRecordeGetMeteringIsEnabled(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.IsMeteringEnabled"
-private foreign handler objC_AVAudioRecordeGetMeteringEnable(in pAVAudioRecorder as ObjcId, in pEnable as CBool) returns nothing binds to "objc:AVAudioRecorder.-meteringEnabled"
+private foreign handler objC_AVAudioRecordeGetMeteringIsEnabled(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.isMeteringEnabled"
+private foreign handler objC_AVAudioRecordeGetMeteringEnable(in pAVAudioRecorder as ObjcId, in pEnable as CBool) returns nothing binds to "objc:AVAudioRecorder.meteringEnabled"
+
 private foreign handler objC_AVAudioRecorderUpateMeters(in pAVAudioRecorder as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-updateMeters"
 -- indicates whether you’ve enabled the recorder to generate audio-level metering data
 -- By default, the recorder doesn’t generate audio-level metering data. Because metering uses computing resources, enable it only if you intend to use it.
-private foreign handler objC_AVAudioRecorderMeterAverageForChan(in pAVAudioRecorder as ObjcId, in pChannelNum as CUint) returns NaturalFloat binds to "objc:AVAudioRecorder.-averagePowerForChannel:"
-private foreign handler objC_AVAudioRecorderMeterPeakForChan(in pAVAudioRecorder as ObjcId, in pChannelNum as CUint) returns NaturalFloat binds to "objc:AVAudioRecorder.-peakPowerForChannel:"
+private foreign handler objC_AVAudioRecorderMeterAverageForChan(in pAVAudioRecorder as ObjcId, in pChannelNSNum as CUInt) returns CFloat binds to "objc:AVAudioRecorder.-averagePowerForChannel:"
+private foreign handler objC_AVAudioRecorderMeterPeakForChan(in pAVAudioRecorder as ObjcId, in pChannelNSNum as CUInt) returns CFloat binds to "objc:AVAudioRecorder.-peakPowerForChannel:"
 
 --------------- TO DO ------------------
 -- properties:
@@ -482,30 +484,31 @@ public handler AVAudioRecorderDeviceTime() returns optional any
 	end unsafe
 end handler
 
-
-
 -- By default, the recorder doesn’t generate audio-level metering data. Because metering uses computing resources, enable it only if you intend to use it.
-public handler AVAudioRecordeGetMeteringEnable( in pEnable as Boolean ) returns optional any
+public handler AVAudioRecorderGetMeteringEnable( in pEnable as Boolean ) returns optional any
 	variable tEnabled as Boolean
 	unsafe
 	if mAVAudioRecorderInstance is not nothing then
-		objC_AVAudioRecordeGetMeteringEnable(mAVAudioRecorderInstance, pEnable)
+		-- objC_AVAudioRecordeGetMeteringEnable(mAVAudioRecorderInstance, pEnable)
+		objC_AVAudioRecorderSetBoolValueForKey(mAVAudioRecorderInstance, true, StringToNSString("meteringEnabled"))
+
 	   put objC_AVAudioRecordeGetMeteringIsEnabled(mAVAudioRecorderInstance) into tEnabled
 		log tEnabled
+		return tEnabled
 	end if
 	end unsafe
 end handler
 -- indicates whether you’ve enabled the recorder to generate audio-level metering data
-public handler AVAudioRecordeGetMeteringIsEnable( ) returns Boolean
+public handler AVAudioRecorderGetMeteringIsEnable( ) returns optional any
 	unsafe
 	if mAVAudioRecorderInstance is not nothing then
 	   return objC_AVAudioRecordeGetMeteringIsEnabled(mAVAudioRecorderInstance)
 	else
-		return false
+		return "Not recording"
 	end if
 	end unsafe
 end handler
-public handler AVAudioRecordeUpdateMeters() returns nothing
+public handler AVAudioRecorderUpdateMeters() returns nothing
 	unsafe
 	if mAVAudioRecorderInstance is not nothing then
 	    objC_AVAudioRecorderUpateMeters(mAVAudioRecorderInstance)
@@ -513,28 +516,34 @@ public handler AVAudioRecordeUpdateMeters() returns nothing
 	end unsafe
 end handler
 
-public handler AVAudioRecorderMeterAverageForChan(in pChan as optional CUInt) returns nothing
-	variable tAverageLevel as optional NaturalFloat
+public handler AVAudioRecorderMeterAverageForChan(in pChan as optional CUInt) returns optional any
+	variable tAverageLevelNSNum as optional ObjcId -- CDouble -- might need to use NSNumber
+	variable tAverageLevel as CFloat
 	if pChan is nothing then
-		put 1 into pChan
+		put 0 into pChan
 	end if
 	unsafe
 		if mAVAudioRecorderInstance is not nothing then
-		   put objC_AVAudioRecorderMeterAverageForChan(mAVAudioRecorderInstance,pChan) into tAverageLevel
-			return tAverageLevel
+		   put objC_AVAudioRecorderMeterAverageForChan(mAVAudioRecorderInstance,pChan) into tAverageLevel -- tAverageLevelNSNum
+			-- put NumberFromNSNumber(tAverageLevelNSNum) into tAverageLevel
+			-- log tAverageLevel
+			return tAverageLevel -- formatted as string
 		end if
 	end unsafe
 end handler
 
-public handler AVAudioRecorderMeterPeakForChan(in pChan as optional CUInt) returns nothing
-	variable tPeakLevel as optional NaturalFloat
+public handler AVAudioRecorderMeterPeakForChan(in pChan as optional CUInt) returns optional any
+	variable tPeakLevelNSNum as optional ObjcId -- CDouble -- might need to use NSNumber
+	variable tPeakLevel as CFloat
 	if pChan is nothing then
-		put 1 into pChan
+		put 0 into pChan
 	end if
 	unsafe
 		if mAVAudioRecorderInstance is not nothing then
-		   put objC_AVAudioRecorderMeterPeakForChan(mAVAudioRecorderInstance,pChan) into tPeakLevel
-			return tPeakLevel
+		   put objC_AVAudioRecorderMeterPeakForChan(mAVAudioRecorderInstance,pChan) into tPeakLevel --  tPeakLevelNSNum
+			--	put NumberFromNSNumber(tPeakLevelNSNum) into tPeakLevel
+			-- 	log tPeakLevel
+			return tPeakLevel -- formatted as string
 		end if
 	end unsafe
 end handler

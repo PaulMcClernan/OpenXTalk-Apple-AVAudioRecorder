@@ -25,11 +25,11 @@ import module org.openxtalk.avaudiorecorder.paulmcclernan
   handler AVAudioRecorderIsRecording() returns Boolean
   handler AVAudioRecorderCurrentTime() returns optional any
   handler AVAudioRecorderDeviceTime() returns optional any
-  handler AVAudioRecordeGetMeteringEnable(in pEnable as Boolean) returns optional any
-  handler AVAudioRecordeGetMeteringIsEnable() returns Boolean
-  handler AVAudioRecordeUpdateMeters() returns nothing
-  handler AVAudioRecorderMeterAverageForChan(in pChan as optional CUint) returns nothing
-  handler AVAudioRecorderMeterPeakForChan(in pChan as optional CUint) returns nothing
+  handler AVAudioRecorderGetMeteringEnable(in pEnable as Boolean) returns optional any
+  handler AVAudioRecorderGetMeteringIsEnable() returns optional any
+  handler AVAudioRecorderUpdateMeters() returns nothing
+  handler AVAudioRecorderMeterAverageForChan(in pChan as optional CUInt) returns optional any
+  handler AVAudioRecorderMeterPeakForChan(in pChan as optional CUInt) returns optional any
   handler getIntegerFromFourCharCodeLittleEndian(in pStr as String) returns optional UInt32
   handler getIntegerFromFourCharCodeBigEndian(in pStr as String) returns optional UInt32
   handler getFourCharCodeFromUint32(in pNum as optional any) returns optional String
