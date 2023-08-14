@@ -524,6 +524,7 @@ public handler AVAudioRecorderMeterAverageForChan(in pChan as optional CUInt) re
 	end if
 	unsafe
 		if mAVAudioRecorderInstance is not nothing then
+			AVAudioRecorderUpdateMeters()
 		   put objC_AVAudioRecorderMeterAverageForChan(mAVAudioRecorderInstance,pChan) into tAverageLevel -- tAverageLevelNSNum
 			-- put NumberFromNSNumber(tAverageLevelNSNum) into tAverageLevel
 			-- log tAverageLevel
@@ -540,6 +541,7 @@ public handler AVAudioRecorderMeterPeakForChan(in pChan as optional CUInt) retur
 	end if
 	unsafe
 		if mAVAudioRecorderInstance is not nothing then
+			AVAudioRecorderUpdateMeters()
 		   put objC_AVAudioRecorderMeterPeakForChan(mAVAudioRecorderInstance,pChan) into tPeakLevel --  tPeakLevelNSNum
 			--	put NumberFromNSNumber(tPeakLevelNSNum) into tPeakLevel
 			-- 	log tPeakLevel
