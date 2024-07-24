@@ -1,4 +1,4 @@
-# OpenXTalk Apple AVMidiPlayer
-Builder FFI Wrapper for Apple's (macOS and theoretically iOS too) AVMIDIPLayer.
+# OpenXTalk-Apple-AVAudioRecorder
+Builder FFI Wrapper for Apple's (macOS and theoretically iOS too) AVAudioRecorder API.
 
-Requires macOS 10.9 or higher (theoretically iOS 8 or higher too, but untested)
+Requires macOS 10.7 or higher (theoretically iOS 8 or higher too, but untested)
