@@ -4,3 +4,6 @@
 ._AVAudioRecorder.lcb
 *.DS_Store
 samples/._AVAudioRecorderDemo.oxtstack
+._test.caf
+/OLD
+*._*

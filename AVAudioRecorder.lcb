@@ -46,6 +46,7 @@ constant kAVFormatMACE3 is "MAC3"
 constant kAVFormatMACE6 is "MAC6"
 constant kAVFormatULaw is "ulaw"
 constant kAVFormatALaw is "alaw"
+
 constant kAVFormatQDesign is "QDMC"
 constant kAVFormatQDesign2 is "QDM2"
 constant kAVFormatQUALCOMM is "Qclp"
@@ -73,6 +74,45 @@ constant kAudioFormatAudible is "AUDB"
 constant kAudioFormatDVIIntelIMA is 0x6D730011
 constant kAudioFormatiLBC is "ilbc" -- low bandwidth speech codec
 constant kAudioFormatOpus is "opus"
+
+constant kAudioFileAIFFType is "AIFF"
+constant kAudioFileAIFCType is "AIFC"
+constant kAudioFileWAVEType is "WAVE"
+constant kAudioFileSoundDesigner2Type is "Sd2f"
+constant kAudioFileNextType is "NeXT"
+constant kAudioFileMP3Type is "MPG3"
+constant kAudioFileMP2Type is "MPG2"
+constant kAudioFileMP1Type is "MPG1"
+constant kAudioFileAC3Type is "ac-3"
+constant kAudioFileAAC_ADTSType is "adts"
+constant kAudioFileMPEG4Type is "mp4f"
+constant kAudioFileM4AType is "m4af"
+constant kAudioFileCAFType is "caff"
+constant kAudioFile3GPType is "3gpp"
+constant kAudioFile3GP2Type is "3gp2"
+constant kAudioFileAMRType is "amrf"
+
+/*               ERRORS:
+kAudioFileUnspecifiedError						= 'wht?',
+kAudioFileUnsupportedFileTypeError 				= 'typ?',
+kAudioFileUnsupportedDataFormatError 			= 'fmt?',
+kAudioFileUnsupportedPropertyError 				= 'pty?',
+kAudioFileBadPropertySizeError 					= '!siz',
+kAudioFilePermissionsError	 					= 'prm?',
+kAudioFileNotOptimizedError
+						= 'optm',
+// file format specific error codes
+kAudioFileInvalidChunkError						= 'chk?',
+kAudioFileDoesNotAllow64BitDataSizeError		= 'off?',
+kAudioFileInvalidPacketOffsetError				= 'pck?',
+kAudioFileInvalidFileError						= 'dta?',
+kAudioFileOperationNotSupportedError			= 0x6F703F3F, // 'op??', integer used because of trigraph
+
+// general file error codes
+kAudioFileEndOfFileError						= -39,
+kAudioFilePositionError							= -40,
+kAudioFileFileNotFoundError						= -43
+*/
 
 -- AVAudioSessionCategory = "AVAudioSessionCategoryPlayAndRecord"
 
@@ -147,35 +187,7 @@ private variable mAVAudioFormat as optional ObjcId
 private variable sTarget as ScriptObject
 
 public handler AVAudioRecorderStopCallback(in pBlock as ObjcBlockPointer)
-  --  foreign handler MCEngineAddRunloopAction(in pCallback as Pointer, in pContext as optional Pointer, out rAction as Pointer) returns CBool
-  --  foreign handler MCEngineRemoveRunloopAction(in pAction as Pointer) returns nothing
-  --  foreign handler MCEngineRunloopWait() returns CBool
-  --  foreign handler MCEngineRunloopBreakWait() returns nothing
-
-   -- variable tObject as ScriptObject
-   -- resolve script object "this stack"
-   -- put the result into tObject
-
-   -- send command "AVAudioRecorderDone" to tObject -- with [1,2,3]
-   -- variable tCurrentPosition as NaturalFloat
-	-- variable tCurrentPosition as Number
-	-- variable rString as String
-	-- unsafe
-	-- put objC_AVAudioRecorderCurrentPosition(mAVAudioRecorderInstance) into tCurrentPosition
-	-- put objC_AVAudioRecorderCurrentPosition(mAVAudioRecorderInstance,tNewPosition) into tCurrentPosition
-	-- end unsafe
-	-- put tCurrentPosition formatted as string into rString
-    -- log sTarget
-	--send "AVAudioRecorderStopped" to sTarget with tCurrentPosition
-	-- if the message was not handled then
-		-- log sTarget
-	--put tCurrentPosition formatted as string into rString
-	 -- post "AVAudioRecorderStopped" to sTarget with [tCurrentPosition]
-	 -- post "AVAudioRecorderStopped" to sTarget with [rString]
 	 post "AVAudioRecordingStopped" to sTarget
-		-- MCEngineRunloopWait() -- true
-	-- MCEngineRunloopBreakWait()
-	 -- log "The message was not handled"
 end handler
 
 public handler AVAudioRecorderInitCallback()
@@ -183,7 +195,6 @@ public handler AVAudioRecorderInitCallback()
 	  	 if not CreateObjcBlockPointerFromHandler(AVAudioRecorderStopCallback, sAVAudioRecorderStopCallbackHandlerPtr) then
 	  	   put nothing into sAVAudioRecorderStopCallbackHandlerPtr
 	  	 end if
-	     --  put the caller into sTarget
 	     resolve script object "this stack"
 	     put the result into sTarget
 	   end if
@@ -212,12 +223,12 @@ Description:
 Initializes an AVAudioRecorder instance and prepares a file to record to.
 
 */
+
 private variable sRequestPermissionsCompletionHandler as optional ObjcBlockPointer
 -- private variable sTarget as ScriptObject
 public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns optional Boolean
 	if (the operating system is "mac") or (the operating system is "ios") then
 		--- need NSURL objects to pass to AVAudioRecorder
-		-- variable tFileNSURL as ObjcObject
 		variable tNSObject as ObjcObject
 		variable tString as String
 		variable tRecordToFileNSURL as ObjcObject
@@ -228,7 +239,6 @@ public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns op
 		variable tAny as optional any
 
 		variable tSuccess as Boolean
-
 		variable tRecSettingsArray as Array
 		variable tRecSettingsNSDict as ObjcObject
 		variable tAVAudioSession as ObjcObject
@@ -255,15 +265,14 @@ public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns op
 				put nothing into sRequestPermissionsCompletionHandler
 				return false
 			end if
-			-- vPermission to Record
+			-- Permission to Record
 			-- recordPermission -- The current recording permission status.
 			-- -requestRecordPermission: -- Requests the user’s permission to record audio.
 			objC_AVAudioSessionRequestRecordPermission(tAVAudioSession,sRequestPermissionsCompletionHandler)
-			-- put objC_NSURLfileURLWithPath(StringToNSString(pRecordToFilePath)) into tFileNSURL
-			-- put objC_NSURLfileURLWithPath(StringToNSString(pFilePath),tIsDir) into tFileNSURL
+
 		 	put objC_NSURLfileURLWithPath(StringToNSString(pRecordToFilePath)) into tRecordToFileNSURL
-			LogNSObjectReflection(tRecordToFileNSURL)
-			-- put objC_NSURLfileURLWithPath(StringToNSString(pSoundFontPath),tIsDir) into tSoundFontNSURL
+			-- LogNSObjectReflection(tRecordToFileNSURL)
+
      		-- NEED to Add Checking for validity of URLs or the  Engine will crash when it passes an invalid URL to AVAudioRecorder!
 			-- For some reason, AVAudioRecorder requires the proper file extension (.mp3, .ima4, etc.) when using a file URL for recording
 			----------------------------------------------------set audio recording setting
@@ -272,33 +281,32 @@ public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns op
 			-- kAudioFormatAppleIMA4 is "ima4'
 			--	kAudioFormatLinearPCM is "lpcm'
 			-- kAudioFormatAppleLossless is "alac'
-			put NumberToNSNumber(getIntegerFromFourCharCodeBigEndian("lpcm")) into tRecSettingsArray[" A V F o r m a t I D Key"]
-			-- put NumberToNSNumber(getIntegerFromFourCharCodeLittleEndian("lpcm")) into tRecSettingsArray[" A V F o r m a t I D Key"]
+			put NumberToNSNumber( getIntegerFromFourCharCodeBigEndian("lpcm") ) into tRecSettingsArray["AVFormatIDKey"]
 
-			-- put "aac " into tRecSettingsArray[" A V F o r m a t I D K e y "]
-			put NumberToNSNumber(44100.0) into tRecSettingsArray[" A V S a m p l e R a t e Key "]
-			put NumberToNSNumber(2) into tRecSettingsArray[" A V N u m b e r O f C h a n n e l s  Key"]
-			put NumberToNSNumber(16) into tRecSettingsArray[" A V L i n e a r P C M B i t D e p t h   Key"]
-			put 0 into tRecSettingsArray[" A V L i n e a r P C M I s B i g E n d i a n Key  "]
+			put NumberToNSNumber(44100.0) into tRecSettingsArray["AVSampleRateKey"]
+			put NumberToNSNumber(2) into tRecSettingsArray["AVNumberOfChannelsKey"]
+			put NumberToNSNumber(16) into tRecSettingsArray["AVLinearPCMBitDepthKey"]
+			put 0 into tRecSettingsArray["AVLinearPCMIsBigEndianKey"]
 			-- log tRecSettingsArray
+
 			put ArrayToNSDictionary(tRecSettingsArray) into tRecSettingsNSDict
 			LogNSObjectReflection(tRecSettingsNSDict)
-			-- log tRecSettingsNSDict
 		   -- put objC_AVAudioRecorderInitWithURLAndSettings(mAVAudioRecorderInstance, tRecordToFileNSURL, tRecSettingsNSDict, tNSError) into mAVAudioRecorderInstance
 			-- log ["AVAudioRecorderInstance:", mAVAudioRecorderInstance]
 
 			put objC_AVAudioFormatAlloc() into mAVAudioFormat
-			put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels(mAVAudioFormat, 44100, 1) into mAVAudioFormat
+			put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels(mAVAudioFormat, 44100, 2) into mAVAudioFormat
 			LogNSObjectReflection(mAVAudioFormat)
 
 			-- put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels(mAVAudioFormat, NumberToNSNumber(44100), NumberToNSNumber(1) ) into mAVAudioFormat
 			-- The returned AVAudioFormat instance uses the AVAudioPCMFormatFloat32 format. AVAudioCommonFormat Enumeration AVAudioPCMFormatFloat32 = 1
 			-- log ["mAVAudioFormat:", mAVAudioFormat]
 			put objC_AVAudioRecorderAlloc() into mAVAudioRecorderInstance
+
 			-- put objC_AVAudioRecorderInitWithURLAndFormat(mAVAudioRecorderInstance, tRecordToFileNSURL, NumberToNSNumber(getIntegerFromFourCharCodeBigEndian("lpcm")), tNSError) into mAVAudioRecorderInstance
-			put objC_AVAudioRecorderInitWithURLAndFormat(mAVAudioRecorderInstance, tRecordToFileNSURL, mAVAudioFormat, tNSError) into mAVAudioRecorderInstance
+			put objC_AVAudioRecorderInitWithURLAndFormat( mAVAudioRecorderInstance, tRecordToFileNSURL, mAVAudioFormat, tNSError) into mAVAudioRecorderInstance
 			LogNSObjectReflection(mAVAudioRecorderInstance)
-			-- put objC_AVAudioRecorder(mAVAudioRecorderInstance, tFileNSURL ,tSoundFontNSURL, tNSError) into mAVAudioRecorderInstance
+
 			if tNSError is not nothing then
 				  put c_CFErrorCopyDescription(tNSError) into tNSErrorDescriptionRef
 				  put StringFromNSString(tNSErrorDescriptionRef) into tErrorDescription
@@ -306,10 +314,7 @@ public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns op
 			  end if
 			if mAVAudioRecorderInstance is not nothing then
 				put objC_AVAudioRecorderPrepareToRecord(mAVAudioRecorderInstance) into tSuccess
-				--log ["Prepare Success:", tSuccess]
 				return tSuccess
-				-- put objC_AVAudioRecorderRecord(mAVAudioRecorderInstance) into tSuccess
-				-- log ["Record Success:", tSuccess]
 			end if
 		end unsafe
 	end if
@@ -386,7 +391,6 @@ end handler
 --- - recordForDuration: Records audio for the indicated duration of time.
 --- - recordAtTime:forDuration: Records audio starting at a specific time for the indicated duration.
 
-
 public handler AVAudioRecorderDeleteRecording()
 	variable tSuccess as Boolean
 	unsafe
@@ -451,7 +455,6 @@ public handler AVAudioRecorderCurrentTime() returns optional any
 	end unsafe
 end handler
 
-
 /**
 Returns the current time per the host machine or device.
 
@@ -489,9 +492,7 @@ public handler AVAudioRecorderGetMeteringEnable( in pEnable as Boolean ) returns
 	variable tEnabled as Boolean
 	unsafe
 	if mAVAudioRecorderInstance is not nothing then
-		-- objC_AVAudioRecordeGetMeteringEnable(mAVAudioRecorderInstance, pEnable)
 		objC_AVAudioRecorderSetBoolValueForKey(mAVAudioRecorderInstance, true, StringToNSString("meteringEnabled"))
-
 	   put objC_AVAudioRecordeGetMeteringIsEnabled(mAVAudioRecorderInstance) into tEnabled
 		log tEnabled
 		return tEnabled
@@ -525,10 +526,9 @@ public handler AVAudioRecorderMeterAverageForChan(in pChan as optional CUInt) re
 	unsafe
 		if mAVAudioRecorderInstance is not nothing then
 			AVAudioRecorderUpdateMeters()
-		   put objC_AVAudioRecorderMeterAverageForChan(mAVAudioRecorderInstance,pChan) into tAverageLevel -- tAverageLevelNSNum
-			-- put NumberFromNSNumber(tAverageLevelNSNum) into tAverageLevel
+		   put objC_AVAudioRecorderMeterAverageForChan(mAVAudioRecorderInstance,pChan) into tAverageLevel
 			-- log tAverageLevel
-			return tAverageLevel -- formatted as string
+			return tAverageLevel
 		end if
 	end unsafe
 end handler
@@ -542,14 +542,11 @@ public handler AVAudioRecorderMeterPeakForChan(in pChan as optional CUInt) retur
 	unsafe
 		if mAVAudioRecorderInstance is not nothing then
 			AVAudioRecorderUpdateMeters()
-		   put objC_AVAudioRecorderMeterPeakForChan(mAVAudioRecorderInstance,pChan) into tPeakLevel --  tPeakLevelNSNum
-			--	put NumberFromNSNumber(tPeakLevelNSNum) into tPeakLevel
-			-- 	log tPeakLevel
-			return tPeakLevel -- formatted as string
+		   put objC_AVAudioRecorderMeterPeakForChan(mAVAudioRecorderInstance,pChan) into tPeakLevel
+			return tPeakLevel
 		end if
 	end unsafe
 end handler
-
 
 ---------------------------------------------------- UTILITY HANDLERS -------------------------------------------------------------------
 
@@ -650,7 +647,6 @@ public handler LogNSObjectClassName(in pNSObj as optional ObjcId)
 
    if pNSObj is not nothing then
       unsafe
-         -- log ["Obj ID" , pNSObj]
          put objC_NSObjectClassName(pNSObj) into tNSStrObj
 
          put StringFromNSString(tNSStrObj) into tStr
@@ -707,91 +703,33 @@ public handler LogNSObjectReflection(in pNSObj as optional ObjcId)
          log ["Class Name" , tStr]
          put c_NSClassFromString(tNSStrObj) into tClass
 			put nothing into tNSStrObj
-			put "" into tStr
 
+			put "" into tStr
          put objC_NSObjectGetSuperClass(pNSObj) into tNSObjB
          put objC_NSObjectClassName(tNSObjB) into tNSStrObj
          put StringFromNSString(tNSStrObj) into tStr
          log ["SuperClass" , tStr]
 			put nothing into tNSStrObj
-			put "" into tStr
 
+			put "" into tStr
          put objC_NSObjectGetDescription(pNSObj) into tNSStrObj
          put StringFromNSString(tNSStrObj) into tStr
          log ["Description" , tStr]
+
 			put nothing into tNSStrObj
 			put "" into tStr
-
-         -- GetNSObjectAttributeKeys(pNSObj)
 			put objC_NSObjectAttributeKeys(pNSObj) into tListNSObj
-         -- put ObjC_NSObjectGetAttributeKeys(pNSObj) into tListNSObj
 			if tListNSObj is not nothing then
-				-- put ListFromNSArray(tNSObjB) into tList
 	         log  ["AttributeKeys obj" , tListNSObj]
 	         put StringFromNSString(tNSStrObj) into tStr
 	         log ["AttributeKeys" , tStr]
 				put nothing into tNSStrObj
 				put "" into tStr
 			end if
-			-- stringWithCString: is deprecated—use stringWithUTF8String: or stringWithCString:encoding: instead.
          put c_class_copyPropertyList(tClass,tPropsCount) into tListOpaquePtr
-			-- if tListNSObj is not nothing then
 			if tPropsCount is not 0 then
          	log ["Props List Count and Pointer", tPropsCount,tListOpaquePtr ]
-            -- put PointerToObjcObject(tListOpaquePtr) into tListNSObj
-            --   put c_CFArrayCreate(nothing, tListOpaquePtr, tPropsCount, nothing) into tListNSObj
-            -- log tListNSObj
-            -- put ListFromNSArray(tListNSObj) into tList
-            -- log tList
-
-            -- put objC_NSObjectClassName(tListNSObj) into tNSStrObj
-            -- put StringFromNSString(tNSStrObj) into tStr
-            -- log ["Class Name" , tStr]
-            -- put MCArrayCreateWithCFArrayRef(tListOpaquePtr,true,tList) into tSuccess
-            -- log ["Props List", tList ]
-
-             -- LogNSObjectClassName(tListNSObj)
-             -- log "Has Props"
-            -- PointerToPropsList(rOutArrayPtr,tListOpaquePtr,8)
-            -- log ["Out Array", rOutArrayPtr]
-            -- put PointerToObjcObject(tListOpaquePtr) into tListNSObj
-            -- put ListFromNSArray(tListNSObj) into tList
-            -- log tList
-            -- put c_property_getName(tPropertyPtr) into tCStringPtr
-            -- log ["Name String Ptr", tCStringPtr]
-            -- put MCStringCreateWithCString(tCStringPtr,tString) into tSuccess
-            -- log [tSuccess,tString ]
-            -- put PointerToObjcObject(tListOpaquePtr) into tListNSObj
-            -- log tListNSObj
-            -- LogNSObjectClassName(tListNSObj)
-            -- log tString
          end if
-
-         -- const char * property_getName(objc_property_t property);
-         -- unsigned int outCount, i;
-         -- objc_property_t *properties = class_copyPropertyList([TestClass class], &outCount);
-         --for (i = 0; i < outCount; i++) {
-         --    objc_property_t property = properties[i];
-         --    fprintf(stdout, "%s %s\n", property_getName(property), property_getAttributes(property)); }
-
-
-         -- put ListFromNSArray(tListOpaquePtr) into tList
-         -- log tList
-      --   put PointerToObjcObject(tListOpaquePtr) into tListNSObj
-      -- put ListFromNSArray[tListNSObj] into tList
-      --   log tList
-
-         --put objC_NSObjectsGetClassDescriptionForClass(tClass) into tClassDescription
-         -- log ["Class Description Obj", tClassDescription]
-         -- objC_lookUpClass(pClass)
-         -- LogNSObjectClassName(tClassDescription)
-         -- put objC_NSObjectGetAttributeKeys(tClassDescription) into tListNSObj
-         -- attributeKeys
-         -- Get the list of methodss
-         -- objc_sendMessage(tClass, "methods")
-         -- put ListFromNSArray(tListNSObj) into tList
-         -- log tList
-
       end unsafe
    else
       log "No Object"
