@@ -291,21 +291,24 @@ public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns op
 
 			put ArrayToNSDictionary(tRecSettingsArray) into tRecSettingsNSDict
 			LogNSObjectReflection(tRecSettingsNSDict)
-		   -- put objC_AVAudioRecorderInitWithURLAndSettings(mAVAudioRecorderInstance, tRecordToFileNSURL, tRecSettingsNSDict, tNSError) into mAVAudioRecorderInstance
+
+			put objC_AVAudioRecorderAlloc() into mAVAudioRecorderInstance
+		   put objC_AVAudioRecorderInitWithURLAndSettings( mAVAudioRecorderInstance, tRecordToFileNSURL, tRecSettingsNSDict, tNSError) into mAVAudioRecorderInstance
 			-- log ["AVAudioRecorderInstance:", mAVAudioRecorderInstance]
+			LogNSObjectReflection( mAVAudioRecorderInstance )
 
-			put objC_AVAudioFormatAlloc() into mAVAudioFormat
-			put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels(mAVAudioFormat, 44100, 2) into mAVAudioFormat
-			LogNSObjectReflection(mAVAudioFormat)
+			-- put objC_AVAudioFormatAlloc() into mAVAudioFormat
+			-- put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels( mAVAudioFormat, 44100, 2) into mAVAudioFormat
+			-- LogNSObjectReflection(mAVAudioFormat)
 
-			-- put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels(mAVAudioFormat, NumberToNSNumber(44100), NumberToNSNumber(1) ) into mAVAudioFormat
+			-- put objC_AVAudioFormatInitStandardFormatWithSampleRateAndChannels( mAVAudioFormat, NumberToNSNumber(44100), NumberToNSNumber(1) ) into mAVAudioFormat
 			-- The returned AVAudioFormat instance uses the AVAudioPCMFormatFloat32 format. AVAudioCommonFormat Enumeration AVAudioPCMFormatFloat32 = 1
 			-- log ["mAVAudioFormat:", mAVAudioFormat]
-			put objC_AVAudioRecorderAlloc() into mAVAudioRecorderInstance
+		  -- 	put objC_AVAudioRecorderAlloc() into mAVAudioRecorderInstance
 
 			-- put objC_AVAudioRecorderInitWithURLAndFormat(mAVAudioRecorderInstance, tRecordToFileNSURL, NumberToNSNumber(getIntegerFromFourCharCodeBigEndian("lpcm")), tNSError) into mAVAudioRecorderInstance
-			put objC_AVAudioRecorderInitWithURLAndFormat( mAVAudioRecorderInstance, tRecordToFileNSURL, mAVAudioFormat, tNSError) into mAVAudioRecorderInstance
-			LogNSObjectReflection(mAVAudioRecorderInstance)
+		-- 	put objC_AVAudioRecorderInitWithURLAndFormat( mAVAudioRecorderInstance, tRecordToFileNSURL, mAVAudioFormat, tNSError) into mAVAudioRecorderInstance
+		---	LogNSObjectReflection(mAVAudioRecorderInstance)
 
 			if tNSError is not nothing then
 				  put c_CFErrorCopyDescription(tNSError) into tNSErrorDescriptionRef
