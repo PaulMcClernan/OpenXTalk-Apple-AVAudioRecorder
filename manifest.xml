@@ -2,7 +2,7 @@
   <name>org.openxtalk.avaudiorecorder.paulmcclernan</name>
   <title>AVAudioRecorder library</title>
   <author>Paul McClernan</author>
-  <version>0.1</version>
+  <version>0.2</version>
   <license>community</license>
   <type>library</type>
   <requires name="com.livecode.objc"/>
