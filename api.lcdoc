@@ -10,7 +10,7 @@ This Library is a wrapper for AVAudioRecorder API for macOS & iOS.
 >*Note:* This library is GPL3 licensed.
 > Please share and share a like.
 
-version: 0.1
+version: 0.2
 
 author: Paul McClernan
 

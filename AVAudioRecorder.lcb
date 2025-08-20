@@ -19,7 +19,7 @@ use com.livecode.byte
 use com.livecode.binary
 use com.livecode.assert
 
-metadata version is "0.1"
+metadata version is "0.2"
 metadata author is "Paul McClernan"
 metadata title is "AVAudioRecorder library"
 -- metadata svgicon is ""
@@ -226,6 +226,89 @@ Initializes an AVAudioRecorder instance and prepares a file to record to.
 
 private variable sRequestPermissionsCompletionHandler as optional ObjcBlockPointer
 -- private variable sTarget as ScriptObject
+public handler AVAudioRecorderPrepareSettings(in pRecordToFilePath as String, in pChannels as Integer, in pRate as Integer ) returns optional Boolean
+
+	 If pChannels <> 1 and pChannels <> 2 then
+	    put 1 into pChannels
+	 end if
+
+	if (the operating system is "mac") or (the operating system is "ios") then
+		variable tNSObject as ObjcObject
+		variable tString as String
+		variable tRecordToFileNSURL as ObjcObject
+		--- need NSError object to pass to AVAudioRecorder
+		variable tNSError as optional ObjcObject
+		variable tNSErrorDescriptionRef as ObjcObject
+		variable tErrorDescription as optional String
+		variable tAny as optional any
+
+		variable tSuccess as Boolean
+		variable tRecSettingsArray as Array
+		variable tRecSettingsNSDict as ObjcObject
+		variable tAVAudioSession as ObjcObject
+		unsafe
+			put objC_NSErrorAlloc() into tNSError
+			put nothing into tNSError
+			put objC_AVAudioSession() into tAVAudioSession
+
+			put objC_AVAudioSessionSetCategory(tAVAudioSession, StringToNSString("AVAudioSessionCategoryPlayAndRecord"), tNSError) into tSuccess
+			if tNSError is not nothing then
+				  put c_CFErrorCopyDescription(tNSError) into tNSErrorDescriptionRef
+				  put StringFromNSString(tNSErrorDescriptionRef) into tErrorDescription
+				  log tErrorDescription
+			end if
+			put objC_AVAudioSessionGetCategory(tAVAudioSession) into tNSObject
+			put StringFromNSString(tNSObject) into tString
+			log tString
+			if not CreateObjcBlockPointerFromHandler(RequestPermissionsCompletionHandler, sRequestPermissionsCompletionHandler) then
+				put nothing into sRequestPermissionsCompletionHandler
+				return false
+			end if
+
+			objC_AVAudioSessionRequestRecordPermission(tAVAudioSession,sRequestPermissionsCompletionHandler)
+
+			put objC_NSURLfileURLWithPath(StringToNSString(pRecordToFilePath)) into tRecordToFileNSURL
+
+			put NumberToNSNumber( getIntegerFromFourCharCodeBigEndian("lpcm") ) into tRecSettingsArray["AVFormatIDKey"]
+
+			put NumberToNSNumber(pRate) into tRecSettingsArray["AVSampleRateKey"]
+			put NumberToNSNumber(pChannels) into tRecSettingsArray["AVNumberOfChannelsKey"]
+			put NumberToNSNumber(16) into tRecSettingsArray["AVLinearPCMBitDepthKey"]
+			put 0 into tRecSettingsArray["AVLinearPCMIsBigEndianKey"]
+			put false into tRecSettingsArray["AVLinearPCMIsFloatKey"]
+			-- AVLinearPCMIsNonInterleaved -- Boolean
+			-- AVAudioFileTypeKey -- 32bit integer = 'OSType'
+			-- AVEncoderBitRateKey -- integer
+			-- AVEncoderBitRateStrategyKey
+			-- AVEncoderBitDepthHintKey -- integer 8 to 32
+			-- AVSampleRateConverterAlgorithmKey
+			-- AVEncoderAudioQualityForVBRKey -- integer from enum AVAudioQuality. only relevant for AVAudioBitRateStrategy_Variable
+			-- AVEncoderAudioQualityKey -- integer
+			-- AVAudioQualityMin    = 0,
+			-- AVAudioQualityLow    = 0x20,
+			-- AVAudioQualityMedium = 0x40,
+			-- AVAudioQualityHigh   = 0x60,
+			-- AVAudioQualityMax    = 0x7F
+
+			put ArrayToNSDictionary(tRecSettingsArray) into tRecSettingsNSDict
+			LogNSObjectReflection(tRecSettingsNSDict)
+
+			put objC_AVAudioRecorderAlloc() into mAVAudioRecorderInstance
+			put objC_AVAudioRecorderInitWithURLAndSettings( mAVAudioRecorderInstance, tRecordToFileNSURL, tRecSettingsNSDict, tNSError) into mAVAudioRecorderInstance
+
+			if tNSError is not nothing then
+				  put c_CFErrorCopyDescription(tNSError) into tNSErrorDescriptionRef
+				  put StringFromNSString(tNSErrorDescriptionRef) into tErrorDescription
+				  log tErrorDescription
+			  end if
+			if mAVAudioRecorderInstance is not nothing then
+				put objC_AVAudioRecorderPrepareToRecord(mAVAudioRecorderInstance) into tSuccess
+				return tSuccess
+			end if
+		end unsafe
+	end if
+end handler
+
 public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns optional Boolean
 	if (the operating system is "mac") or (the operating system is "ios") then
 		--- need NSURL objects to pass to AVAudioRecorder
