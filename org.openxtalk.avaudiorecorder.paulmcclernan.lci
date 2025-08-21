@@ -8,6 +8,7 @@ import module org.openxtalk.avaudiorecorder.paulmcclernan
   use com.livecode.logic
   use com.livecode.string
   use com.livecode.type
+  use com.livecode.assert
   use com.livecode.system
   use com.livecode.array
   use com.livecode.byte
@@ -16,6 +17,7 @@ import module org.openxtalk.avaudiorecorder.paulmcclernan
   handler AVAudioRecorderStopCallback(in pBlock as Pointer) returns optional any
   handler AVAudioRecorderInitCallback() returns optional any
   handler AVAudioRecorderRemoveCallback() returns optional any
+  handler AVAudioRecorderPrepareWithSettings(in pRecordToFilePath as String, in pChannels as Number, in pRate as Number, in pBits as Number) returns optional Boolean
   handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns optional Boolean
   handler RequestPermissionsCompletionHandler(in pBlock as Pointer, in pGranted as CBool) returns optional any
   handler AVAudioRecorderStop() returns nothing

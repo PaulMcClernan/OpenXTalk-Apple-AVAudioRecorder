@@ -14,6 +14,7 @@
   <requires name="com.livecode.logic"/>
   <requires name="com.livecode.string"/>
   <requires name="com.livecode.type"/>
+  <requires name="com.livecode.assert"/>
   <requires name="com.livecode.system"/>
   <requires name="com.livecode.array"/>
   <requires name="com.livecode.byte"/>
@@ -22,6 +23,7 @@
   <handler name="AVAudioRecorderStopCallback" parameters="in Pointer" return="any"/>
   <handler name="AVAudioRecorderInitCallback" parameters="" return="any"/>
   <handler name="AVAudioRecorderRemoveCallback" parameters="" return="any"/>
+  <handler name="AVAudioRecorderPrepareWithSettings" parameters="in string,in integer,in integer,in integer" return="optional boolean"/>
   <handler name="AVAudioRecorderPrepare" parameters="in string" return="optional boolean"/>
   <handler name="RequestPermissionsCompletionHandler" parameters="in Pointer,in CBool" return="any"/>
   <handler name="AVAudioRecorderStop" parameters="" return="nothing"/>

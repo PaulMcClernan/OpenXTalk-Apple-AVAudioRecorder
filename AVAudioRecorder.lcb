@@ -226,11 +226,10 @@ Initializes an AVAudioRecorder instance and prepares a file to record to.
 
 private variable sRequestPermissionsCompletionHandler as optional ObjcBlockPointer
 -- private variable sTarget as ScriptObject
-public handler AVAudioRecorderPrepareSettings(in pRecordToFilePath as String, in pChannels as Integer, in pRate as Integer ) returns optional Boolean
-
-	 If pChannels <> 1 and pChannels <> 2 then
-	    put 1 into pChannels
-	 end if
+public handler AVAudioRecorderPrepareWithSettings(in pRecordToFilePath as String, in pChannels as Integer, in pRate as Integer, in pBits as Integer ) returns optional Boolean
+		expect (pChannels > 0 and pChannels <= 2) because "Channel parameter must be the integer 1 or 2"
+		expect (pRate = 44100 or pRate = 22050 or pRate = 11025) because "The sample-rate parameter must be one of 44100, 22050, or 11025"
+		expect (pBits = 8 or pBits = 16 or pBits = 24) because "The bits per sample parameter must be one of 8,16, or 24"
 
 	if (the operating system is "mac") or (the operating system is "ios") then
 		variable tNSObject as ObjcObject
@@ -273,7 +272,7 @@ public handler AVAudioRecorderPrepareSettings(in pRecordToFilePath as String, in
 
 			put NumberToNSNumber(pRate) into tRecSettingsArray["AVSampleRateKey"]
 			put NumberToNSNumber(pChannels) into tRecSettingsArray["AVNumberOfChannelsKey"]
-			put NumberToNSNumber(16) into tRecSettingsArray["AVLinearPCMBitDepthKey"]
+			put NumberToNSNumber(pBits) into tRecSettingsArray["AVLinearPCMBitDepthKey"]
 			put 0 into tRecSettingsArray["AVLinearPCMIsBigEndianKey"]
 			put false into tRecSettingsArray["AVLinearPCMIsFloatKey"]
 			-- AVLinearPCMIsNonInterleaved -- Boolean

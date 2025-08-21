@@ -47,11 +47,26 @@ Description: Pauses AVAudioRecorder recording.
 
 
 
-Name: AVAudioRecorderPrepare
+Name: AVAudioRecorderIsRecording
 
 Type: handler
 
-Syntax: AVAudioRecorderPrepare(<pRecordToFilePath>)
+Syntax: AVAudioRecorderIsRecording()
+
+Summary: Check if AVAudioRecorder is currently recording sound.
+
+Example:  if AVAudioRecorderIsRecording() then AVAudioRecorderStop
+
+Description: A function that returns a boolean which indicates if AVAudioRecorder is currently recording sound.
+
+
+
+
+Name: AVAudioRecorderPrepareWithSettings
+
+Type: handler
+
+Syntax: AVAudioRecorderPrepareWithSettings(<pRecordToFilePath>,<pChannels>,<pRate>,<pBits>)
 
 Summary: Prepare a file for AVAudioRecorder to record to
 
@@ -64,21 +79,6 @@ pRecordToFilePath: the file path to a record audio to.
 Returns: True is preperation was successful and recording to the file may begin.
 
 Description: Initializes an AVAudioRecorder instance and prepares a file to record to.
-
-
-
-
-Name: AVAudioRecorderIsRecording
-
-Type: handler
-
-Syntax: AVAudioRecorderIsRecording()
-
-Summary: Check if AVAudioRecorder is currently recording sound.
-
-Example:  if AVAudioRecorderIsRecording() then AVAudioRecorderStop
-
-Description: A function that returns a boolean which indicates if AVAudioRecorder is currently recording sound.
 
 
 
