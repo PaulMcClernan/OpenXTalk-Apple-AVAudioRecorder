@@ -151,7 +151,7 @@ public handler CheckMicPermission() returns String
    variable tStatus as CInt
 
 	unsafe
-   	put ObjC_AVCaptureDeviceAuthorizationStatus( StringToNSString("audio")) into tStatus
+   	put ObjC_AVCaptureDeviceAuthorizationStatus( StringToNSString("AVMediaTypeAudio")) into tStatus
 	   if tStatus = 0 then
 			return "notDetermined"
 	   else if tStatus = 1 then
