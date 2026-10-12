@@ -10,16 +10,29 @@ import module org.openxtalk.avaudiorecorder.paulmcclernan
   use com.livecode.type
   use com.livecode.assert
   use com.livecode.system
+  use com.livecode.typeconvert
   use com.livecode.array
   use com.livecode.byte
   use com.livecode.char
   use com.livecode.math
+  foreign handler objC_AVAudioAppRequestRecordPermissionCompletion(in pAVAudioApp as ObjcId, in pCallBack as Pointer) returns optional ObjcId
+  foreign handler objC_AVAudioAppRequestRecordPermission(in pAVAudioApp as ObjcId, in pCallBack as Pointer) returns optional ObjcId
+  foreign handler objC_AVAudioAppRecordPermission(in pAVAudioApp as ObjcId) returns CBool
+  foreign handler objC_AVAudioAppRequestMicInjectRecordPermissionCompletion(in pAVAudioApp as ObjcId, in pCallBack as Pointer) returns optional any
+  foreign handler objC_AVAudioAppRequestMicInjectRecordPermission(in pAVAudioApp as ObjcId, in pCallBack as Pointer) returns optional any
+  foreign handler ObjC_AVCaptureDeviceAuthorizationStatus(in pMediaType as ObjcId) returns CSInt
+  handler CheckMicPermission() returns String
+  foreign handler objC_AVAudioSessionRequestRecordPermission(in pAVAudioSession as ObjcId, in pGrantedHandler as Pointer) returns nothing
   handler AVAudioRecorderStopCallback(in pBlock as Pointer) returns optional any
   handler AVAudioRecorderInitCallback() returns optional any
   handler AVAudioRecorderRemoveCallback() returns optional any
   handler AVAudioRecorderPrepareWithSettings(in pRecordToFilePath as String, in pChannels as Number, in pRate as Number, in pBits as Number) returns optional Boolean
   handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns optional Boolean
-  handler RequestPermissionsCompletionHandler(in pBlock as Pointer, in pGranted as CBool) returns optional any
+  variable mAVSessionRequestPermissionsCompletionHandlerPtr as optional ObjcBlockPointer
+  handler AVAudioSessionRequestPermissionsCompletionHandler(in pBlock as Pointer, in pGranted as CBool) returns optional any
+  variable mAVAudioAppPermissionCallbackPtr as optional ObjcBlockPointer
+  variable mAVAudioAppRequestRecordPermissionCompletionHandlerPtr as optional ObjcBlockPointer
+  handler AVAudioAppRequestRecordPermissionCompletionHandler(in pBlock as Pointer, in pPermission as optional any) returns optional any
   handler AVAudioRecorderStop() returns nothing
   handler AVAudioRecorderPause() returns nothing
   handler AVAudioRecorderRecord() returns optional any

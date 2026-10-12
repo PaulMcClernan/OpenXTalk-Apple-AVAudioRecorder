@@ -19,7 +19,7 @@ use com.livecode.byte
 use com.livecode.binary
 use com.livecode.assert
 
-metadata version is "0.2"
+metadata version is "0.3"
 metadata author is "Paul McClernan"
 metadata title is "AVAudioRecorder library"
 -- metadata svgicon is ""
@@ -132,12 +132,53 @@ private foreign handler objC_NSMutableArrayInitWithCapacity(in pNSMutableArray a
 private foreign handler objC_NSMutableArrayInitWithNSArray(in pNSMutableArray as ObjcId, in pNSArray as ObjcId) returns ObjcId binds to "objc:NSMutableArray.-initWithArray:"
 private foreign handler c_CFErrorCopyDescription(in pCFErrorRef as ObjcId) returns ObjcId binds to "c:CFErrorCopyDescription"
 
+private foreign handler objC_AVAudioApplication() returns ObjcId binds to "objc:AVAudioApplication.+sharedInstance"
+-- Requesting audio recording permission
+public foreign handler objC_AVAudioAppRequestRecordPermissionCompletion( in pAVAudioApp as ObjcId, in pCallBack as ObjcBlockPointer ) returns optional ObjcId binds to "objc:AVAudioApplication.-requestRecordPermissionWithCompletionHandler:"
+public foreign handler objC_AVAudioAppRequestRecordPermission( in pAVAudioApp as ObjcId, in pCallBack as ObjcBlockPointer ) returns optional ObjcId binds to "objc:AVAudioApplication.+requestRecordPermission:"
+-- The app’s permission to record audio.
+public foreign handler objC_AVAudioAppRecordPermission( in pAVAudioApp as ObjcId) returns CBool binds to "objc:AVAudioApplication.-recordPermission"
+-- Requesting microphone injection permission -- + requestMicrophoneInjectionPermissionWithCompletionHandler:
+public foreign handler objC_AVAudioAppRequestMicInjectRecordPermissionCompletion( in pAVAudioApp as ObjcId, in pCallBack as ObjcBlockPointer ) returns optional any binds to "objc:AVAudioApplication.-requestMicrophoneInjectionPermission:"
+
+public foreign handler objC_AVAudioAppRequestMicInjectRecordPermission( in pAVAudioApp as ObjcId, in pCallBack as ObjcBlockPointer ) returns optional any binds to "objc:AVAudioApplication.+requestMicrophoneInjectionPermission:"
+public foreign handler ObjC_AVCaptureDeviceAuthorizationStatus(in pMediaType as ObjcId) returns CInt binds to "objc:AVCaptureDevice.+authorizationStatusForMediaType:"
+
+// Helper wrapper to handle the native string identifier
+public handler CheckMicPermission() returns String
+   variable tMediaType as ObjcId
+   // Create an unmanaged Objective-C string for AVMediaTypeAudio
+   variable tStatus as CInt
+
+	unsafe
+   	put ObjC_AVCaptureDeviceAuthorizationStatus( StringToNSString("audio")) into tStatus
+	   if tStatus = 0 then
+			return "notDetermined"
+	   else if tStatus = 1 then
+			return "restricted"
+		else if tStatus = 2 then
+			return "denied"
+		else if tStatus = 3 then
+			return "authorized"
+	   end if
+	end unsafe
+end handler
+/*
+AVAudioApplicationRecordPermission -- Constants that indicate the app’s permission to record audio. -- Uint32 'OSType'
+Requests the app’s permission to add audio to calls. -- microphoneInjectionPermission
+A value that indicates an app’s permission to add audio to calls. -- AVAudioApplicationMicrophoneInjectionPermission
+Constants that indicate an app’s permission to add audio to calls. -- Managing audio input mute state
+inputMuted -- A Boolean value that indicates whether the app’s audio input is in a muted state.
+- setInputMuted:error: -- Sets a Boolean value that indicates whether the app’s audio input is in a muted state.
+AVAudioApplicationInputMuteStateChangeNotification -- A notification the system posts when the app’s audio input mute state changes.
+- setInputMuteStateChangeHandler:error: Sets a callback to handle changes to application-level audio muting states.
+*/
+
 private foreign handler objC_AVAudioSession() returns ObjcId binds to "objc:AVAudioSession.+sharedInstance"
 private foreign handler objC_AVAudioSessionGetCategory(in pAVAudioSession as ObjcId ) returns ObjcId binds to "objc:AVAudioSession.category"
 private foreign handler objC_AVAudioSessionSetCategory(in pAVAudioSession as ObjcId, in pAVAudioSessionCategory as ObjcId, out rNSError as ObjcId) returns CBool binds to "objc:AVAudioSession.-setCategory:error:"
-private foreign handler objC_AVAudioSessionRequestRecordPermission(in pAVAudioSession as ObjcId, in pGrantedHandler as ObjcBlockPointer) returns nothing binds to "objc:AVAudioSession.-requestRecordPermission:"
+public foreign handler objC_AVAudioSessionRequestRecordPermission(in pAVAudioSession as ObjcId, in pGrantedHandler as ObjcBlockPointer) returns nothing binds to "objc:AVAudioSession.-requestRecordPermission:"
 -- - (void)requestRecordPermission:(void (^)(BOOL granted))response;
-
 
 ---  AVAudioRecorder API: https://developer.apple.com/documentation/avfaudio/avaudiorecorder?language=objc
 private foreign handler objC_AVAudioRecorderAlloc() returns ObjcRetainedId binds to "objc:AVAudioRecorder.+alloc"
@@ -159,9 +200,11 @@ private foreign handler objC_AVAudioRecorderDeviceCurrentTime(in pAVAudioRecorde
 
 private foreign handler objC_AVAudioRecorderSetValueForKey(in pAVAudioRecorder as ObjcId, in pValue as ObjcId, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
 private foreign handler objC_AVAudioRecorderSetBoolValueForKey(in pAVAudioRecorder as ObjcId, in pValue as CBool, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
+private foreign handler objC_AVAudioRecorderSetCIntValueForKey(in pAVAudioRecorder as ObjcId, in pValue as CInt, in pSelector as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-setValue:forKey:"
 
-private foreign handler objC_AVAudioRecordeGetMeteringIsEnabled(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.isMeteringEnabled"
-private foreign handler objC_AVAudioRecordeGetMeteringEnable(in pAVAudioRecorder as ObjcId, in pEnable as CBool) returns nothing binds to "objc:AVAudioRecorder.meteringEnabled"
+private foreign handler objC_AVAudioRecorderSetMeteringEnabled(in pAVAudioRecorder as ObjcId, in pValue as CBool) returns nothing binds to "objc:AVAudioRecorder.-setMeteringEnabled:"
+private foreign handler objC_AVAudioRecorderGetMeteringIsEnabled(in pAVAudioRecorder as ObjcId) returns CBool binds to "objc:AVAudioRecorder.isMeteringEnabled"
+private foreign handler objC_AVAudioRecorderMeteringEnabled( in pAVAudioRecorder as ObjcId, in pEnable as CBool) returns nothing binds to "objc:AVAudioRecorder.meteringEnabled:"
 
 private foreign handler objC_AVAudioRecorderUpateMeters(in pAVAudioRecorder as ObjcId) returns nothing binds to "objc:AVAudioRecorder.-updateMeters"
 -- indicates whether you’ve enabled the recorder to generate audio-level metering data
@@ -181,7 +224,7 @@ private foreign handler objC_AVAudioRecorderMeterPeakForChan(in pAVAudioRecorder
 
 --------------------- Public handler:
 private variable mAVAudioRecorderInstance as optional ObjcId
-private variable sAVAudioRecorderStopCallbackHandlerPtr as optional ObjcBlockPointer
+private variable mAVAudioRecorderStopCallbackHandlerPtr as optional ObjcBlockPointer
 private variable mAVAudioFormat as optional ObjcId
 
 private variable sTarget as ScriptObject
@@ -191,9 +234,9 @@ public handler AVAudioRecorderStopCallback(in pBlock as ObjcBlockPointer)
 end handler
 
 public handler AVAudioRecorderInitCallback()
-    if sAVAudioRecorderStopCallbackHandlerPtr is nothing then
-	  	 if not CreateObjcBlockPointerFromHandler(AVAudioRecorderStopCallback, sAVAudioRecorderStopCallbackHandlerPtr) then
-	  	   put nothing into sAVAudioRecorderStopCallbackHandlerPtr
+    if mAVAudioRecorderStopCallbackHandlerPtr is nothing then
+	  	 if not CreateObjcBlockPointerFromHandler(AVAudioRecorderStopCallback, mAVAudioRecorderStopCallbackHandlerPtr) then
+	  	   put nothing into mAVAudioRecorderStopCallbackHandlerPtr
 	  	 end if
 	     resolve script object "this stack"
 	     put the result into sTarget
@@ -201,9 +244,9 @@ public handler AVAudioRecorderInitCallback()
 end handler
 
 public handler AVAudioRecorderRemoveCallback()
-	if sAVAudioRecorderStopCallbackHandlerPtr is not nothing then
-		DeleteObjcBlockPointer(sAVAudioRecorderStopCallbackHandlerPtr)
-		-- put nothing into sAVAudioRecorderStopCallbackHandlerPtr
+	if mAVAudioRecorderStopCallbackHandlerPtr is not nothing then
+		DeleteObjcBlockPointer(mAVAudioRecorderStopCallbackHandlerPtr)
+		-- put nothing into mAVAudioRecorderStopCallbackHandlerPtr
 	 end if
 end handler
 
@@ -223,8 +266,6 @@ Description:
 Initializes an AVAudioRecorder instance and prepares a file to record to.
 
 */
-
-private variable sRequestPermissionsCompletionHandler as optional ObjcBlockPointer
 -- private variable sTarget as ScriptObject
 public handler AVAudioRecorderPrepareWithSettings(in pRecordToFilePath as String, in pChannels as Integer, in pRate as Integer, in pBits as Integer ) returns optional Boolean
 		expect (pChannels > 0 and pChannels <= 2) because "Channel parameter must be the integer 1 or 2"
@@ -232,6 +273,7 @@ public handler AVAudioRecorderPrepareWithSettings(in pRecordToFilePath as String
 		expect (pBits = 8 or pBits = 16 or pBits = 24) because "The bits per sample parameter must be one of 8,16, or 24"
 
 	if (the operating system is "mac") or (the operating system is "ios") then
+
 		variable tNSObject as ObjcObject
 		variable tString as String
 		variable tRecordToFileNSURL as ObjcObject
@@ -245,12 +287,44 @@ public handler AVAudioRecorderPrepareWithSettings(in pRecordToFilePath as String
 		variable tRecSettingsArray as Array
 		variable tRecSettingsNSDict as ObjcObject
 		variable tAVAudioSession as ObjcObject
+		variable tAVAudioApp as ObjcObject
 		unsafe
 			put objC_NSErrorAlloc() into tNSError
 			put nothing into tNSError
-			put objC_AVAudioSession() into tAVAudioSession
 
-			put objC_AVAudioSessionSetCategory(tAVAudioSession, StringToNSString("AVAudioSessionCategoryPlayAndRecord"), tNSError) into tSuccess
+			put the architecture into tString
+			log tString
+			-- will be either "x86_64" or "arm64"
+			execute script "return the systemVersion"
+			put the result into tString
+			split tString by "." into tAny
+			put element 1 of tAny into tAny
+			parse tAny as number into tAny
+			if tAny > 13 then
+				log "macOS version above is 14 or above use AVAudioApplication"
+				put objC_AVAudioApplication() into tAVAudioApp
+				-- LogNSObjectReflection( tAVAudioApp )
+/*
+				if not CreateObjcBlockPointerFromHandler( AVAudioAppRequestRecordPermissionCompletionHandler, mAVAudioAppPermissionCallbackPtr) then
+					 put nothing into mAVAudioAppPermissionCallbackPtr
+					 return false
+				end if
+				-- objC_AVAudioAppRequestRecordPermissionCompletion( tAVAudioApp, mAVAudioAppPermissionCallbackPtr ) -- wont bind!
+            -- objC_AVAudioAppRequestRecordPermission( tAVAudioApp, mAVAudioAppPermissionCallbackPtr ) -- wont bind!
+*/
+           -- /*
+			  -- Requesting microphone injection permission -- + requestMicrophoneInjectionPermissionWithCompletionHandler:			  /*
+				if not CreateObjcBlockPointerFromHandler( AVAudioAppRequestRecordPermissionCompletionHandler, mAVAudioAppPermissionCallbackPtr) then
+					put nothing into mAVAudioAppPermissionCallbackPtr
+					return false
+				end if
+				-- objC_AVAudioAppRequestMicInjectRecordPermissionCompletion( tAVAudioApp, mAVAudioAppPermissionCallbackPtr )
+				-- objC_AVAudioAppRequestMicInjectRecordPermission( tAVAudioApp, mAVAudioAppPermissionCallbackPtr )
+				-- */
+			end if
+
+			put objC_AVAudioSession() into tAVAudioSession
+			put objC_AVAudioSessionSetCategory( tAVAudioSession, StringToNSString("AVAudioSessionCategoryPlayAndRecord"), tNSError) into tSuccess
 			if tNSError is not nothing then
 				  put c_CFErrorCopyDescription(tNSError) into tNSErrorDescriptionRef
 				  put StringFromNSString(tNSErrorDescriptionRef) into tErrorDescription
@@ -259,12 +333,11 @@ public handler AVAudioRecorderPrepareWithSettings(in pRecordToFilePath as String
 			put objC_AVAudioSessionGetCategory(tAVAudioSession) into tNSObject
 			put StringFromNSString(tNSObject) into tString
 			log tString
-			if not CreateObjcBlockPointerFromHandler(RequestPermissionsCompletionHandler, sRequestPermissionsCompletionHandler) then
-				put nothing into sRequestPermissionsCompletionHandler
+			if not CreateObjcBlockPointerFromHandler(AVAudioSessionRequestPermissionsCompletionHandler, mAVSessionRequestPermissionsCompletionHandlerPtr) then
+				put nothing into mAVSessionRequestPermissionsCompletionHandlerPtr
 				return false
 			end if
-
-			objC_AVAudioSessionRequestRecordPermission(tAVAudioSession,sRequestPermissionsCompletionHandler)
+			objC_AVAudioSessionRequestRecordPermission(tAVAudioSession,mAVSessionRequestPermissionsCompletionHandlerPtr)
 
 			put objC_NSURLfileURLWithPath(StringToNSString(pRecordToFilePath)) into tRecordToFileNSURL
 
@@ -343,14 +416,14 @@ public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns op
 			put objC_AVAudioSessionGetCategory(tAVAudioSession) into tNSObject
   			put StringFromNSString(tNSObject) into tString
   			log tString
-			if not CreateObjcBlockPointerFromHandler(RequestPermissionsCompletionHandler, sRequestPermissionsCompletionHandler) then
-				put nothing into sRequestPermissionsCompletionHandler
+			if not CreateObjcBlockPointerFromHandler(AVAudioSessionRequestPermissionsCompletionHandler, mAVSessionRequestPermissionsCompletionHandlerPtr) then
+				put nothing into mAVSessionRequestPermissionsCompletionHandlerPtr
 				return false
 			end if
 			-- Permission to Record
 			-- recordPermission -- The current recording permission status.
 			-- -requestRecordPermission: -- Requests the user’s permission to record audio.
-			objC_AVAudioSessionRequestRecordPermission(tAVAudioSession,sRequestPermissionsCompletionHandler)
+			objC_AVAudioSessionRequestRecordPermission(tAVAudioSession,mAVSessionRequestPermissionsCompletionHandlerPtr)
 
 		 	put objC_NSURLfileURLWithPath(StringToNSString(pRecordToFilePath)) into tRecordToFileNSURL
 			-- LogNSObjectReflection(tRecordToFileNSURL)
@@ -405,9 +478,20 @@ public handler AVAudioRecorderPrepare(in pRecordToFilePath as String) returns op
 	end if
 end handler
 
-public handler RequestPermissionsCompletionHandler(in pBlock as ObjcBlockPointer, in pGranted as CBool)
-	log ["AudioLibraryRequestPermissionsCallback", pGranted]  -- to sTarget with [pGranted]
+
+public variable mAVSessionRequestPermissionsCompletionHandlerPtr as optional ObjcBlockPointer
+public handler AVAudioSessionRequestPermissionsCompletionHandler(in pBlock as ObjcBlockPointer, in pGranted as CBool)
+	log ["AudioRecord RequestPermissionsCallback"]
+	log [pGranted]  -- to sTarget with [pGranted]
 end handler
+
+public variable mAVAudioAppPermissionCallbackPtr as optional ObjcBlockPointer
+public variable mAVAudioAppRequestRecordPermissionCompletionHandlerPtr as optional ObjcBlockPointer
+public handler AVAudioAppRequestRecordPermissionCompletionHandler(in pBlock as ObjcBlockPointer, in pPermission as optional any )
+	-- log getFourCharCodeFromUint32( pPermission )
+	log ["AVAudioApp RequestRecordPermissionCompletionHandler result", pPermission ]  -- to sTarget with [pGranted]
+end handler
+
 
 
 /**
@@ -507,7 +591,6 @@ public handler AVAudioRecorderIsRecording() returns Boolean
 	end unsafe
 end handler
 
-
 /**
 Returns the temporal location within a recording that the record curso.
 
@@ -577,8 +660,12 @@ public handler AVAudioRecorderGetMeteringEnable( in pEnable as Boolean ) returns
 	variable tEnabled as Boolean
 	unsafe
 	if mAVAudioRecorderInstance is not nothing then
-		objC_AVAudioRecorderSetBoolValueForKey(mAVAudioRecorderInstance, true, StringToNSString("meteringEnabled"))
-	   put objC_AVAudioRecordeGetMeteringIsEnabled(mAVAudioRecorderInstance) into tEnabled
+		-- objC_AVAudioRecorderSetCIntValueForKey( mAVAudioRecorderInstance, 1, StringToNSString("meteringEnabled") )
+	   objC_AVAudioRecorderSetMeteringEnabled( mAVAudioRecorderInstance, true )
+		-- objC_AVAudioRecorderMeteringEnabled( mAVAudioRecorderInstance, true )
+		-- objC_AVAudioRecorderSetBoolValueForKey(mAVAudioRecorderInstance, true, StringToNSString("meteringEnabled"))
+	    put objC_AVAudioRecorderGetMeteringIsEnabled( mAVAudioRecorderInstance ) into tEnabled
+		--put objC_AVAudioRecorderGetMeteringEnabled( mAVAudioRecorderInstance ) into tEnabled
 		log tEnabled
 		return tEnabled
 	end if
@@ -588,7 +675,7 @@ end handler
 public handler AVAudioRecorderGetMeteringIsEnable( ) returns optional any
 	unsafe
 	if mAVAudioRecorderInstance is not nothing then
-	   return objC_AVAudioRecordeGetMeteringIsEnabled(mAVAudioRecorderInstance)
+	   return objC_AVAudioRecorderGetMeteringIsEnabled( mAVAudioRecorderInstance )
 	else
 		return "Not recording"
 	end if
